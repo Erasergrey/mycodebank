@@ -16,9 +16,9 @@ import SettingsPage from './pages/SettingsPage'
 import TransactionsPage from './pages/TransactionsPage'
 import TransferPage from './pages/TransferPage'
 import WithdrawPage from './pages/WithdrawPage'
+import useUserProfile from './hooks/useUserProfile'
 import { logoutUser, subscribeToAuthState } from './services/authService'
 import { getFirebaseErrorMessage } from './services/firebaseErrors'
-import { subscribeToUserProfile } from './services/userService'
 import './styles/auth.css'
 import './styles/dashboard.css'
 import './styles/layout.css'
@@ -85,9 +85,12 @@ function App() {
   const [authOperationInProgress, setAuthOperationInProgress] = useState(false)
   const [logoutLoading, setLogoutLoading] = useState(false)
   const [logoutError, setLogoutError] = useState('')
-  const [profile, setProfile] = useState(null)
-  const [profileLoading, setProfileLoading] = useState(false)
-  const [profileError, setProfileError] = useState('')
+  const {
+    profile,
+    isLoading: profileLoading,
+    error: profileError,
+    reloadProfile,
+  } = useUserProfile(currentUser?.uid)
 
   useEffect(() => {
     const unsubscribe = subscribeToAuthState(
@@ -95,9 +98,6 @@ function App() {
         setCurrentUser(user)
         setAuthError('')
         setLogoutError('')
-        setProfile(null)
-        setProfileError('')
-        setProfileLoading(Boolean(user))
         setAuthLoading(false)
       },
       (error) => {
@@ -179,39 +179,6 @@ function App() {
     }
   }, [authLoading, currentUser])
 
-  useEffect(() => {
-    if (!currentUser?.uid) {
-      setProfile(null)
-      setProfileLoading(false)
-      setProfileError('')
-      return undefined
-    }
-
-    setProfile(null)
-    setProfileLoading(true)
-    setProfileError('')
-
-    try {
-      const unsubscribe = subscribeToUserProfile(
-        currentUser.uid,
-        (profileData) => {
-          setProfile(profileData)
-          setProfileLoading(false)
-        },
-        (error) => {
-          setProfileError(getFirebaseErrorMessage(error))
-          setProfileLoading(false)
-        },
-      )
-
-      return unsubscribe
-    } catch (error) {
-      setProfileError(getFirebaseErrorMessage(error))
-      setProfileLoading(false)
-      return undefined
-    }
-  }, [currentUser?.uid])
-
   function handleShowLogin() {
     setAuthMode(AUTH_MODES.LOGIN)
     setAuthError('')
@@ -269,9 +236,13 @@ function App() {
   function renderAuthenticatedPage() {
     const dashboardProps = {
       currentUser,
+      logoutLoading,
+      onLogout: handleLogout,
+      onNavigate: handleNavigate,
       profile,
-      profileLoading,
       profileError,
+      profileLoading,
+      reloadProfile,
     }
 
     switch (activeSection) {

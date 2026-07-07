@@ -249,6 +249,39 @@
   font-weight: 900;
 }
 
+.user-menu__avatar--loading,
+.header-skeleton {
+  color: transparent;
+  background: linear-gradient(
+    90deg,
+    rgba(148, 163, 184, 0.1),
+    rgba(148, 163, 184, 0.24),
+    rgba(148, 163, 184, 0.1)
+  );
+  animation: ui-skeleton-pulse 1.45s ease-in-out infinite;
+}
+
+.header-skeleton {
+  display: block;
+  border-radius: 999px;
+}
+
+.header-skeleton--title {
+  width: min(360px, 66vw);
+  height: 30px;
+}
+
+.header-skeleton--name {
+  width: 128px;
+  height: 14px;
+}
+
+.header-skeleton--email {
+  width: 168px;
+  height: 12px;
+  margin-top: 7px;
+}
+
 .user-menu__identity {
   min-width: 0;
   text-align: left;

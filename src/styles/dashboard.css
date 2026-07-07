@@ -33,8 +33,8 @@
 }
 
 .dashboard-state--error {
-  padding: 0;
-  background: transparent;
+  display: grid;
+  gap: 14px;
 }
 
 .dashboard-content {
@@ -45,6 +45,9 @@
 .dashboard-welcome,
 .balance-card,
 .profile-summary,
+.quick-actions,
+.financial-summary,
+.transaction-list,
 .dashboard-next-step {
   padding: 22px;
 }
@@ -62,11 +65,20 @@
   text-transform: uppercase;
 }
 
+.dashboard-section-heading {
+  margin-bottom: 16px;
+}
+
+.dashboard-section-heading h2,
 .dashboard-welcome h2,
 .balance-card h2,
 .profile-summary h2 {
   margin: 0;
   color: var(--color-text-light);
+}
+
+.dashboard-section-heading .dashboard-kicker {
+  margin-bottom: 6px;
 }
 
 .dashboard-welcome h2 {
@@ -107,6 +119,25 @@
   position: relative;
 }
 
+.balance-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.balance-card__owner,
+.balance-card__identifier {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.86);
+  font-weight: 800;
+}
+
+.balance-card__identifier {
+  white-space: nowrap;
+}
+
 .balance-card .dashboard-kicker,
 .balance-card h2 {
   color: #ffffff;
@@ -125,9 +156,42 @@
   font-weight: 700;
 }
 
+.balance-card__toggle {
+  min-height: 38px;
+  margin-top: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 14px;
+  padding: 0 14px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.14);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.balance-card__toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.balance-card__toggle:focus-visible,
+.quick-action:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.balance-card__loading .ui-loading-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.14),
+    rgba(255, 255, 255, 0.32),
+    rgba(255, 255, 255, 0.14)
+  );
+}
+
 .profile-summary dl {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   margin: 18px 0 0;
 }
@@ -154,6 +218,94 @@
   background: rgba(7, 17, 31, 0.42);
 }
 
+.dashboard-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.quick-actions__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.quick-action {
+  min-width: 0;
+  min-height: 82px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(36, 50, 71, 0.78);
+  border-radius: 18px;
+  padding: 14px;
+  color: var(--color-text-light);
+  background: rgba(7, 17, 31, 0.42);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.quick-action:hover {
+  border-color: rgba(56, 189, 248, 0.28);
+  background: rgba(56, 189, 248, 0.1);
+  transform: translateY(-1px);
+}
+
+.quick-action__icon {
+  width: 42px;
+  height: 42px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 14px;
+  color: var(--color-bright-blue);
+  background: rgba(56, 189, 248, 0.12);
+}
+
+.quick-action strong,
+.quick-action small {
+  display: block;
+}
+
+.quick-action small {
+  margin-top: 4px;
+  color: var(--color-text-secondary);
+}
+
+.financial-summary__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0;
+}
+
+.financial-summary dt {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.financial-summary dd {
+  margin: 5px 0 0;
+  color: var(--color-text-light);
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.transaction-list__empty {
+  display: grid;
+  gap: 14px;
+  color: var(--color-text-secondary);
+}
+
+.transaction-list__empty p {
+  margin: 0;
+}
+
 @media (max-width: 720px) {
   .dashboard-card {
     padding: 24px;
@@ -168,7 +320,12 @@
   }
 
   .profile-summary dl {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .quick-actions__grid,
+  .financial-summary__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -180,7 +337,21 @@
   .dashboard-welcome,
   .balance-card,
   .profile-summary,
+  .quick-actions,
+  .financial-summary,
+  .transaction-list,
   .dashboard-next-step {
     padding: 18px;
+  }
+
+  .balance-card__header,
+  .dashboard-state__actions {
+    display: grid;
+  }
+
+  .quick-actions__grid,
+  .financial-summary__grid,
+  .profile-summary dl {
+    grid-template-columns: 1fr;
   }
 }

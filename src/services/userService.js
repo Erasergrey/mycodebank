@@ -1,4 +1,4 @@
-import { doc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore'
+import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore'
 import { db } from './firebase'
 
 function ensureFirestoreReady() {
@@ -22,35 +22,33 @@ export async function createUserProfile({ uid, nombre, email }) {
   })
 }
 
-export function subscribeToUserProfile(uid, onData, onError) {
+function mapUserProfile(snapshot) {
+  const data = snapshot.data()
+
+  return {
+    id: snapshot.id,
+    uid: snapshot.id,
+    nombre: data.nombre,
+    email: data.email,
+    emailNormalizado: data.emailNormalizado,
+    saldo: data.saldo,
+    creadoEn: data.creadoEn,
+  }
+}
+
+export async function getUserProfile(uid) {
   ensureFirestoreReady()
 
   if (!uid) {
-    onError({ code: 'app/missing-user-id' })
-    return () => {}
+    throw { code: 'app/missing-user-id' }
   }
 
   const userRef = doc(db, 'users', uid)
+  const snapshot = await getDoc(userRef)
 
-  return onSnapshot(
-    userRef,
-    (snapshot) => {
-      if (!snapshot.exists()) {
-        onData(null)
-        return
-      }
+  if (!snapshot.exists()) {
+    return null
+  }
 
-      const data = snapshot.data()
-
-      onData({
-        id: snapshot.id,
-        nombre: data.nombre,
-        email: data.email,
-        emailNormalizado: data.emailNormalizado,
-        saldo: data.saldo,
-        creadoEn: data.creadoEn,
-      })
-    },
-    onError,
-  )
+  return mapUserProfile(snapshot)
 }

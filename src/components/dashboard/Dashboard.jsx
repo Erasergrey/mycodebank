@@ -1,12 +1,33 @@
+import { formatProfileDate } from '../../utils/formatters'
+import Button from '../ui/Button'
 import Card from '../ui/Card'
 import EmptyState from '../ui/EmptyState'
 import ErrorState from '../ui/ErrorState'
 import LoadingSkeleton from '../ui/LoadingSkeleton'
 import BalanceCard from './BalanceCard'
+import FinancialSummary from './FinancialSummary'
+import QuickActions from './QuickActions'
+import TransactionList from './TransactionList'
 
-function Dashboard({ currentUser, profile, profileError, profileLoading }) {
-  const displayEmail = profile?.email ?? currentUser?.email ?? 'No disponible'
-  const displayName = profile?.nombre?.trim() || 'Usuario sin nombre configurado'
+function Dashboard({
+  accountIdentifier,
+  balance,
+  createdAt,
+  displayEmail,
+  displayName,
+  hasProfile,
+  isProfileLoading,
+  logoutLoading,
+  onDeposit,
+  onLogout,
+  onRetryProfile,
+  onTransfer,
+  onViewTransactions,
+  onWithdraw,
+  profileError,
+}) {
+  const hasProfileError = Boolean(profileError)
+  const showProfileData = !isProfileLoading && !hasProfileError && hasProfile
 
   return (
     <Card className="dashboard-card" aria-labelledby="dashboard-title">
@@ -17,37 +38,66 @@ function Dashboard({ currentUser, profile, profileError, profileLoading }) {
         </div>
       </header>
 
-      {profileLoading && (
-        <div className="dashboard-state" aria-live="polite">
-          <LoadingSkeleton lines={2} />
-          <p>Cargando informacion de tu cuenta...</p>
-        </div>
-      )}
-
-      {!profileLoading && profileError && (
+      {hasProfileError && (
         <div className="dashboard-state dashboard-state--error">
           <ErrorState>{profileError}</ErrorState>
+          <div className="dashboard-state__actions">
+            <Button type="button" onClick={onRetryProfile}>
+              Reintentar
+            </Button>
+          </div>
         </div>
       )}
 
-      {!profileLoading && !profileError && !profile && (
-        <EmptyState title="Perfil no encontrado">
-          No encontramos el perfil bancario asociado a esta cuenta.
-        </EmptyState>
+      {!isProfileLoading && !hasProfileError && !hasProfile && (
+        <div className="dashboard-state">
+          <EmptyState title="Perfil no encontrado">
+            No encontramos la informacion de tu perfil. Puedes volver a
+            intentarlo o cerrar sesion.
+          </EmptyState>
+          <div className="dashboard-state__actions">
+            <Button type="button" onClick={onRetryProfile}>
+              Reintentar
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={onLogout}
+              disabled={logoutLoading}
+            >
+              {logoutLoading ? 'Cerrando sesion...' : 'Cerrar sesion'}
+            </Button>
+          </div>
+        </div>
       )}
 
-      {!profileLoading && !profileError && profile && (
-        <div className="dashboard-content">
-          <Card className="dashboard-welcome">
-            <p className="dashboard-kicker">Bienvenido</p>
-            <h2>{displayName}</h2>
-            <p>{displayEmail}</p>
-          </Card>
+      <div className="dashboard-content">
+        <Card className="dashboard-welcome">
+          <p className="dashboard-kicker">Bienvenido</p>
+          {isProfileLoading ? (
+            <LoadingSkeleton lines={2} />
+          ) : (
+            <>
+              <h2>{displayName}</h2>
+              <p>{displayEmail}</p>
+            </>
+          )}
+        </Card>
 
-          <BalanceCard saldo={profile.saldo} />
+        <BalanceCard
+          accountHolderName={showProfileData ? displayName : 'Usuario'}
+          accountIdentifier={accountIdentifier}
+          balance={showProfileData ? balance : null}
+          hasError={hasProfileError}
+          isLoading={isProfileLoading}
+        />
 
+        {showProfileData && (
           <Card className="profile-summary" aria-labelledby="profile-title">
-            <h2 id="profile-title">Resumen del perfil</h2>
+            <div className="dashboard-section-heading">
+              <p className="dashboard-kicker">Perfil</p>
+              <h2 id="profile-title">Resumen del perfil</h2>
+            </div>
             <dl>
               <div>
                 <dt>Estado</dt>
@@ -58,17 +108,35 @@ function Dashboard({ currentUser, profile, profileError, profileLoading }) {
                 <dd>{displayEmail}</dd>
               </div>
               <div>
-                <dt>Documento</dt>
-                <dd>{profile.id}</dd>
+                <dt>Cuenta</dt>
+                <dd>{accountIdentifier}</dd>
+              </div>
+              <div>
+                <dt>Creacion</dt>
+                <dd>{formatProfileDate(createdAt)}</dd>
               </div>
             </dl>
           </Card>
+        )}
 
-          <p className="dashboard-next-step">
-            Transferencias e historial se agregaran en la siguiente etapa.
-          </p>
-        </div>
-      )}
+        {showProfileData && (
+          <QuickActions
+            onDeposit={onDeposit}
+            onTransfer={onTransfer}
+            onViewTransactions={onViewTransactions}
+            onWithdraw={onWithdraw}
+          />
+        )}
+
+        <FinancialSummary isLoading={isProfileLoading} />
+
+        <TransactionList onViewTransactions={onViewTransactions} />
+
+        <p className="dashboard-next-step">
+          Saldo en tiempo real, historial y operaciones se agregaran en las
+          siguientes fases.
+        </p>
+      </div>
     </Card>
   )
 }

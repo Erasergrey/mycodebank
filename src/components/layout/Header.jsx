@@ -1,10 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
+import {
+  getDisplayEmail,
+  getDisplayName,
+  getInitials,
+} from '../../utils/userDisplay'
 import LayoutIcon from './LayoutIcon'
 
 const dateFormatter = new Intl.DateTimeFormat('es-CL', {
   weekday: 'long',
   day: 'numeric',
   month: 'long',
+  year: 'numeric',
 })
 
 function getGreeting() {
@@ -21,31 +27,6 @@ function getGreeting() {
   return 'Buenas noches'
 }
 
-function getDisplayName({ currentUser, profile, profileLoading }) {
-  if (profileLoading) {
-    return 'Cuenta XBank'
-  }
-
-  return (
-    profile?.nombre?.trim() ||
-    currentUser?.displayName?.trim() ||
-    'Usuario sin nombre'
-  )
-}
-
-function getDisplayEmail({ currentUser, profile }) {
-  return profile?.email ?? currentUser?.email ?? 'Cuenta XBank'
-}
-
-function getInitials(value) {
-  const source = value?.trim() || 'Usuario'
-  const parts = source.split(/\s+/).filter(Boolean)
-  const first = parts[0]?.[0] ?? 'U'
-  const second = parts.length > 1 ? parts[1][0] : ''
-
-  return `${first}${second}`.toUpperCase()
-}
-
 function Header({
   currentUser,
   isMobileMenuOpen,
@@ -59,11 +40,9 @@ function Header({
 }) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const userMenuRef = useRef(null)
-  const displayName = getDisplayName({ currentUser, profile, profileLoading })
+  const displayName = getDisplayName({ currentUser, profile })
   const displayEmail = getDisplayEmail({ currentUser, profile })
-  const initials = getInitials(
-    displayName === 'Usuario sin nombre' ? displayEmail : displayName,
-  )
+  const initials = getInitials(displayName)
   const formattedDate = dateFormatter.format(new Date())
 
   useEffect(() => {
@@ -108,8 +87,15 @@ function Header({
 
       <div className="app-header__copy">
         <p className="app-header__date">{formattedDate}</p>
-        <h1>
-          {getGreeting()}, {displayName}
+        <h1 aria-live="polite">
+          {profileLoading ? (
+            <span
+              className="header-skeleton header-skeleton--title"
+              aria-label="Cargando perfil"
+            />
+          ) : (
+            `${getGreeting()}, ${displayName}`
+          )}
         </h1>
         <p>
           {profileError
@@ -137,12 +123,28 @@ function Header({
             aria-expanded={isUserMenuOpen}
             aria-haspopup="true"
           >
-            <span className="user-menu__avatar" aria-hidden="true">
-              {initials}
-            </span>
+            {profileLoading ? (
+              <span
+                className="user-menu__avatar user-menu__avatar--loading"
+                aria-hidden="true"
+              />
+            ) : (
+              <span className="user-menu__avatar" aria-hidden="true">
+                {initials}
+              </span>
+            )}
             <span className="user-menu__identity">
-              <strong>{displayName}</strong>
-              <small>{displayEmail}</small>
+              {profileLoading ? (
+                <>
+                  <span className="header-skeleton header-skeleton--name" />
+                  <span className="header-skeleton header-skeleton--email" />
+                </>
+              ) : (
+                <>
+                  <strong>{displayName}</strong>
+                  <small>{displayEmail}</small>
+                </>
+              )}
             </span>
           </button>
 
