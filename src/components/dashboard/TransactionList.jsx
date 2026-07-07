@@ -41,10 +41,7 @@ function TransactionList({
 
       {!isLoading && hasError && (
         <div className="transaction-list__state">
-          <ErrorState>
-            No pudimos cargar tus movimientos. Revisa tu conexion e intenta
-            nuevamente.
-          </ErrorState>
+          <ErrorState>{error}</ErrorState>
           {onRetry && (
             <Button type="button" variant="secondary" onClick={onRetry}>
               Reintentar

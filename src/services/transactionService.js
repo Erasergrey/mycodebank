@@ -1,7 +1,6 @@
 import {
   collection,
   onSnapshot,
-  or,
   orderBy,
   query,
   where,
@@ -240,26 +239,56 @@ export function subscribeToUserTransactions({ uid, onData, onError }) {
   }
 
   const transactionsRef = collection(db, TRANSACTIONS_COLLECTION)
-  const transactionsQuery = query(
+  const sentTransactionsQuery = query(
     transactionsRef,
-    or(where('emisorUid', '==', uid), where('receptorUid', '==', uid)),
+    where('emisorUid', '==', uid),
     orderBy('fecha', 'desc'),
   )
+  const receivedTransactionsQuery = query(
+    transactionsRef,
+    where('receptorUid', '==', uid),
+    orderBy('fecha', 'desc'),
+  )
+  const transactionSnapshots = {
+    received: null,
+    sent: null,
+  }
 
-  return onSnapshot(
-    transactionsQuery,
-    (snapshot) => {
-      const transactions = getUniqueTransactions(
+  function emitTransactions() {
+    const availableSnapshots = Object.values(transactionSnapshots).filter(Boolean)
+    const transactions = getUniqueTransactions(
+      availableSnapshots.flatMap((snapshot) =>
         snapshot.docs
           .map((documentSnapshot) => mapTransactionDocument(documentSnapshot, uid))
           .filter(Boolean),
-      ).sort(sortTransactionsByDateDesc)
+      ),
+    ).sort(sortTransactionsByDateDesc)
 
-      onData({
-        transactions,
-        fromCache: snapshot.metadata.fromCache,
-      })
+    onData({
+      transactions,
+      fromCache: availableSnapshots.some((snapshot) => snapshot.metadata.fromCache),
+    })
+  }
+
+  const unsubscribeSentTransactions = onSnapshot(
+    sentTransactionsQuery,
+    (snapshot) => {
+      transactionSnapshots.sent = snapshot
+      emitTransactions()
     },
     onError,
   )
+  const unsubscribeReceivedTransactions = onSnapshot(
+    receivedTransactionsQuery,
+    (snapshot) => {
+      transactionSnapshots.received = snapshot
+      emitTransactions()
+    },
+    onError,
+  )
+
+  return () => {
+    unsubscribeSentTransactions()
+    unsubscribeReceivedTransactions()
+  }
 }
