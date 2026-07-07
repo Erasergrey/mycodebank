@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { loginUser } from '../../services/authService'
 import { getFirebaseErrorMessage } from '../../services/firebaseErrors'
+import Button from '../ui/Button'
+import ErrorState from '../ui/ErrorState'
+import Input from '../ui/Input'
 
 const initialFormState = {
   email: '',
@@ -62,43 +65,35 @@ function LoginForm({ onOperationEnd, onOperationStart }) {
 
   return (
     <form className="auth-form" onSubmit={handleLoginSubmit} noValidate>
-      <div className="field-group">
-        <label htmlFor="login-email">Correo</label>
-        <input
-          id="login-email"
-          name="email"
-          type="email"
-          value={formValues.email}
-          onChange={handleInputChange}
-          disabled={isSubmitting}
-          autoComplete="email"
-          required
-        />
-      </div>
+      <Input
+        id="login-email"
+        label="Correo"
+        name="email"
+        type="email"
+        value={formValues.email}
+        onChange={handleInputChange}
+        disabled={isSubmitting}
+        autoComplete="email"
+        required
+      />
 
-      <div className="field-group">
-        <label htmlFor="login-password">Contrasena</label>
-        <input
-          id="login-password"
-          name="password"
-          type="password"
-          value={formValues.password}
-          onChange={handleInputChange}
-          disabled={isSubmitting}
-          autoComplete="current-password"
-          required
-        />
-      </div>
+      <Input
+        id="login-password"
+        label="Contrasena"
+        name="password"
+        type="password"
+        value={formValues.password}
+        onChange={handleInputChange}
+        disabled={isSubmitting}
+        autoComplete="current-password"
+        required
+      />
 
-      {errorMessage && (
-        <p className="feedback-message feedback-message--error" role="alert">
-          {errorMessage}
-        </p>
-      )}
+      {errorMessage && <ErrorState>{errorMessage}</ErrorState>}
 
-      <button className="primary-button" type="submit" disabled={isSubmitting}>
+      <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Ingresando...' : 'Iniciar sesion'}
-      </button>
+      </Button>
     </form>
   )
 }

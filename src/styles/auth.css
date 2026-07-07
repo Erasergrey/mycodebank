@@ -9,15 +9,11 @@
 .session-panel,
 .loading-panel {
   width: min(100%, 720px);
-  border: 1px solid #d8dee9;
-  border-radius: 8px;
-  background: #ffffff;
-  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
 }
 
 .auth-card,
 .session-panel {
-  padding: 32px;
+  padding: 34px;
 }
 
 .loading-panel {
@@ -39,26 +35,28 @@
 }
 
 .eyebrow {
-  color: #1d4ed8;
+  color: var(--color-bright-blue);
 }
 
 .status-pill--success {
-  color: #047857;
+  color: var(--color-green-positive);
 }
 
 .auth-header h1,
 .session-panel h1 {
   margin: 0;
-  color: #111827;
+  color: var(--color-text-light);
   font-size: clamp(2rem, 8vw, 3.4rem);
   line-height: 1.05;
+  font-family: var(--font-display);
+  font-weight: 900;
 }
 
 .auth-header p,
 .next-stage-message,
 .loading-panel p {
   margin: 12px 0 0;
-  color: #4b5563;
+  color: var(--color-text-secondary);
 }
 
 .mode-switch {
@@ -67,9 +65,9 @@
   gap: 8px;
   margin-bottom: 24px;
   padding: 4px;
-  border: 1px solid #d8dee9;
-  border-radius: 8px;
-  background: #f8fafc;
+  border: 1px solid rgba(36, 50, 71, 0.9);
+  border-radius: 18px;
+  background: rgba(7, 17, 31, 0.62);
 }
 
 .mode-switch button,
@@ -84,13 +82,14 @@
 }
 
 .mode-switch button {
-  color: #334155;
+  color: var(--color-text-secondary);
   background: transparent;
 }
 
 .mode-switch button.is-active {
   color: #ffffff;
-  background: #1d4ed8;
+  background: linear-gradient(135deg, var(--color-primary-blue), #1d4ed8);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.22);
 }
 
 .auth-form {
@@ -104,19 +103,12 @@
 }
 
 .field-group label {
-  color: #1f2937;
+  color: var(--color-text-light);
   font-weight: 700;
 }
 
 .field-group input {
   width: 100%;
-  min-height: 44px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  padding: 10px 12px;
-  color: #111827;
-  background: #ffffff;
-  font: inherit;
 }
 
 .field-group input:disabled,
@@ -137,14 +129,14 @@
 
 .primary-button {
   color: #ffffff;
-  background: #1d4ed8;
+  background: var(--color-primary-blue);
 }
 
 .secondary-button {
   width: 100%;
   margin-top: 24px;
-  color: #1d4ed8;
-  background: #eff6ff;
+  color: var(--color-bright-blue);
+  background: rgba(56, 189, 248, 0.1);
 }
 
 .feedback-message {
@@ -152,11 +144,6 @@
   border-radius: 6px;
   padding: 12px;
   font-weight: 700;
-}
-
-.feedback-message--error {
-  color: #991b1b;
-  background: #fee2e2;
 }
 
 .session-details {
@@ -172,14 +159,14 @@
 }
 
 .session-details dt {
-  color: #4b5563;
+  color: var(--color-text-secondary);
   font-size: 0.9rem;
   font-weight: 700;
 }
 
 .session-details dd {
   margin: 0;
-  color: #111827;
+  color: var(--color-text-light);
   overflow-wrap: anywhere;
 }
 

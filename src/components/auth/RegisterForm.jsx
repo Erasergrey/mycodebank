@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { registerUser } from '../../services/authService'
 import { getFirebaseErrorMessage } from '../../services/firebaseErrors'
+import Button from '../ui/Button'
+import ErrorState from '../ui/ErrorState'
+import Input from '../ui/Input'
 
 const initialFormState = {
   nombre: '',
@@ -84,74 +87,62 @@ function RegisterForm({ onOperationEnd, onOperationStart }) {
 
   return (
     <form className="auth-form" onSubmit={handleRegisterSubmit} noValidate>
-      <div className="field-group">
-        <label htmlFor="register-name">Nombre</label>
-        <input
-          id="register-name"
-          name="nombre"
-          type="text"
-          value={formValues.nombre}
-          onChange={handleInputChange}
-          disabled={isSubmitting}
-          autoComplete="name"
-          minLength="2"
-          required
-        />
-      </div>
+      <Input
+        id="register-name"
+        label="Nombre"
+        name="nombre"
+        type="text"
+        value={formValues.nombre}
+        onChange={handleInputChange}
+        disabled={isSubmitting}
+        autoComplete="name"
+        minLength="2"
+        required
+      />
 
-      <div className="field-group">
-        <label htmlFor="register-email">Correo</label>
-        <input
-          id="register-email"
-          name="email"
-          type="email"
-          value={formValues.email}
-          onChange={handleInputChange}
-          disabled={isSubmitting}
-          autoComplete="email"
-          required
-        />
-      </div>
+      <Input
+        id="register-email"
+        label="Correo"
+        name="email"
+        type="email"
+        value={formValues.email}
+        onChange={handleInputChange}
+        disabled={isSubmitting}
+        autoComplete="email"
+        required
+      />
 
-      <div className="field-group">
-        <label htmlFor="register-password">Contrasena</label>
-        <input
-          id="register-password"
-          name="password"
-          type="password"
-          value={formValues.password}
-          onChange={handleInputChange}
-          disabled={isSubmitting}
-          autoComplete="new-password"
-          minLength="6"
-          required
-        />
-      </div>
+      <Input
+        id="register-password"
+        label="Contrasena"
+        name="password"
+        type="password"
+        value={formValues.password}
+        onChange={handleInputChange}
+        disabled={isSubmitting}
+        autoComplete="new-password"
+        minLength="6"
+        required
+      />
 
-      <div className="field-group">
-        <label htmlFor="register-confirm-password">Confirmar contrasena</label>
-        <input
-          id="register-confirm-password"
-          name="confirmPassword"
-          type="password"
-          value={formValues.confirmPassword}
-          onChange={handleInputChange}
-          disabled={isSubmitting}
-          autoComplete="new-password"
-          minLength="6"
-          required
-        />
-      </div>
+      <Input
+        id="register-confirm-password"
+        label="Confirmar contrasena"
+        name="confirmPassword"
+        type="password"
+        value={formValues.confirmPassword}
+        onChange={handleInputChange}
+        disabled={isSubmitting}
+        autoComplete="new-password"
+        minLength="6"
+        required
+      />
 
-      {errorMessage && (
-        <p className="feedback-message feedback-message--error" role="alert">
-          {errorMessage}
-        </p>
-      )}
+      {errorMessage && <ErrorState>{errorMessage}</ErrorState>}
 
-      <button className="primary-button" type="submit" disabled={isSubmitting}>
+      <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Creando cuenta...' : 'Crear cuenta'}
-      </button>
+      </Button>
     </form>
   )
 }
