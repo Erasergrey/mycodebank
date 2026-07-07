@@ -260,7 +260,15 @@ function App() {
 
     switch (activeSection) {
       case APP_SECTIONS.TRANSFER:
-        return <TransferPage />
+        return (
+          <TransferPage
+            currentUser={currentUser}
+            onGoDashboard={() => handleNavigate(APP_SECTIONS.DASHBOARD)}
+            onViewTransactions={() => handleNavigate(APP_SECTIONS.TRANSACTIONS)}
+            profile={profile}
+            profileLoading={profileLoading}
+          />
+        )
       case APP_SECTIONS.TRANSACTIONS:
         return (
           <TransactionsPage

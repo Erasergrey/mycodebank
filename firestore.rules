@@ -12,6 +12,18 @@ service cloud.firestore {
         'email',
         'emailNormalizado',
         'saldo',
+        'creadoEn',
+        'ultimaTransferenciaId',
+        'actualizadoEn'
+      ]);
+    }
+
+    function hasExpectedNewUserFields() {
+      return request.resource.data.keys().hasOnly([
+        'nombre',
+        'email',
+        'emailNormalizado',
+        'saldo',
         'creadoEn'
       ]);
     }
@@ -26,6 +38,22 @@ service cloud.firestore {
         && request.resource.data.creadoEn is timestamp;
     }
 
+    function hasExpectedDirectoryFields() {
+      return request.resource.data.keys().hasOnly([
+        'uid',
+        'nombre',
+        'emailNormalizado'
+      ]);
+    }
+
+    function isValidDirectoryProfile(uid) {
+      return request.resource.data.uid == uid
+        && request.resource.data.nombre is string
+        && request.resource.data.nombre.size() >= 2
+        && request.resource.data.emailNormalizado is string
+        && request.resource.data.emailNormalizado == request.auth.token.email;
+    }
+
     function isMovementParticipant() {
       return request.auth != null
         && (
@@ -34,19 +62,186 @@ service cloud.firestore {
         );
     }
 
+    function userPath(uid) {
+      return /databases/$(database)/documents/users/$(uid);
+    }
+
+    function movementPath(movementId) {
+      return /databases/$(database)/documents/movimientos/$(movementId);
+    }
+
+    function movementAfter(movementId) {
+      return getAfter(movementPath(movementId));
+    }
+
+    function userBefore(uid) {
+      return get(userPath(uid));
+    }
+
+    function userAfter(uid) {
+      return getAfter(userPath(uid));
+    }
+
+    function hasOnlyTransferUserChanges() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'saldo',
+        'ultimaTransferenciaId',
+        'actualizadoEn'
+      ]);
+    }
+
+    function keepsProfileIdentity() {
+      return request.resource.data.nombre == resource.data.nombre
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.emailNormalizado == resource.data.emailNormalizado
+        && request.resource.data.creadoEn == resource.data.creadoEn;
+    }
+
+    function isValidTransferMovementData() {
+      return request.resource.data.keys().hasOnly([
+          'emisorUid',
+          'receptorUid',
+          'emisorEmail',
+          'receptorEmail',
+          'emisorNombre',
+          'receptorNombre',
+          'monto',
+          'descripcion',
+          'tipo',
+          'estado',
+          'fecha'
+        ])
+        && request.resource.data.keys().hasAll([
+          'emisorUid',
+          'receptorUid',
+          'emisorEmail',
+          'receptorEmail',
+          'emisorNombre',
+          'receptorNombre',
+          'monto',
+          'tipo',
+          'estado',
+          'fecha'
+        ])
+        && request.resource.data.emisorUid == request.auth.uid
+        && request.resource.data.receptorUid is string
+        && request.resource.data.receptorUid != request.resource.data.emisorUid
+        && request.resource.data.emisorEmail == request.auth.token.email
+        && request.resource.data.receptorEmail is string
+        && request.resource.data.emisorNombre is string
+        && request.resource.data.receptorNombre is string
+        && request.resource.data.monto is int
+        && request.resource.data.monto > 0
+        && request.resource.data.tipo == 'transferencia'
+        && request.resource.data.estado == 'completado'
+        && request.resource.data.fecha is timestamp
+        && request.resource.data.fecha == request.time
+        && (
+          !request.resource.data.keys().hasAny(['descripcion'])
+          || (
+            request.resource.data.descripcion is string
+            && request.resource.data.descripcion.size() <= 120
+          )
+        );
+    }
+
+    function isMovementLinkedToUserUpdates(movementId) {
+      return userAfter(request.resource.data.emisorUid).data.ultimaTransferenciaId == movementId
+        && userAfter(request.resource.data.receptorUid).data.ultimaTransferenciaId == movementId
+        && userAfter(request.resource.data.emisorUid).data.saldo
+          == userBefore(request.resource.data.emisorUid).data.saldo - request.resource.data.monto
+        && userAfter(request.resource.data.receptorUid).data.saldo
+          == userBefore(request.resource.data.receptorUid).data.saldo + request.resource.data.monto;
+    }
+
+    function isLinkedSenderUpdate(uid, movementId) {
+      return request.auth.uid == uid
+        && movementAfter(movementId).data.emisorUid == uid
+        && movementAfter(movementId).data.receptorUid != uid
+        && request.resource.data.saldo
+          == resource.data.saldo - movementAfter(movementId).data.monto;
+    }
+
+    function isLinkedRecipientUpdate(uid, movementId) {
+      return movementAfter(movementId).data.emisorUid == request.auth.uid
+        && movementAfter(movementId).data.receptorUid == uid
+        && movementAfter(movementId).data.emisorUid != uid
+        && request.resource.data.saldo
+          == resource.data.saldo + movementAfter(movementId).data.monto;
+    }
+
+    function isValidTransferBalanceUpdate(uid) {
+      return request.auth != null
+        && hasExpectedUserFields()
+        && hasOnlyTransferUserChanges()
+        && keepsProfileIdentity()
+        && resource.data.saldo is int
+        && request.resource.data.saldo is int
+        && request.resource.data.saldo >= 0
+        && request.resource.data.ultimaTransferenciaId is string
+        && request.resource.data.actualizadoEn is timestamp
+        && request.resource.data.actualizadoEn == request.time
+        && movementAfter(request.resource.data.ultimaTransferenciaId).data.monto is int
+        && movementAfter(request.resource.data.ultimaTransferenciaId).data.monto > 0
+        && movementAfter(request.resource.data.ultimaTransferenciaId).data.fecha == request.time
+        && (
+          isLinkedSenderUpdate(uid, request.resource.data.ultimaTransferenciaId)
+          || isLinkedRecipientUpdate(uid, request.resource.data.ultimaTransferenciaId)
+        );
+    }
+
+    function isValidTransferMovementCreate(movementId) {
+      return request.auth != null
+        && isValidTransferMovementData()
+        && userBefore(request.resource.data.emisorUid).data.saldo is int
+        && userBefore(request.resource.data.receptorUid).data.saldo is int
+        && userBefore(request.resource.data.emisorUid).data.saldo >= request.resource.data.monto
+        && request.resource.data.emisorEmail
+          == userBefore(request.resource.data.emisorUid).data.email
+        && request.resource.data.receptorEmail
+          == userBefore(request.resource.data.receptorUid).data.email
+        && request.resource.data.emisorNombre
+          == userBefore(request.resource.data.emisorUid).data.nombre
+        && request.resource.data.receptorNombre
+          == userBefore(request.resource.data.receptorUid).data.nombre
+        && isMovementLinkedToUserUpdates(movementId);
+    }
+
     // Reglas temporales para autenticacion; se actualizaran al implementar transferencias.
     match /users/{uid} {
       allow create: if isSignedInUser(uid)
-        && hasExpectedUserFields()
+        && hasExpectedNewUserFields()
         && isValidNewUserProfile();
 
-      allow read: if isSignedInUser(uid);
-      allow update, delete: if false;
+      allow get: if request.auth != null;
+      allow list: if false;
+      allow update: if isValidTransferBalanceUpdate(uid);
+      allow delete: if false;
+    }
+
+    match /userDirectory/{uid} {
+      allow get: if request.auth != null;
+      allow list: if request.auth != null
+        && request.query.limit is int
+        && request.query.limit <= 5;
+
+      allow create: if isSignedInUser(uid)
+        && hasExpectedDirectoryFields()
+        && isValidDirectoryProfile(uid);
+
+      allow update: if isSignedInUser(uid)
+        && hasExpectedDirectoryFields()
+        && isValidDirectoryProfile(uid)
+        && request.resource.data.emailNormalizado == resource.data.emailNormalizado
+        && request.resource.data.uid == resource.data.uid;
+
+      allow delete: if false;
     }
 
     match /movimientos/{movementId} {
       allow read: if isMovementParticipant();
-      allow create, update, delete: if false;
+      allow create: if isValidTransferMovementCreate(movementId);
+      allow update, delete: if false;
     }
 
     match /{document=**} {

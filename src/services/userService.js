@@ -1,4 +1,4 @@
-import { doc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore'
+import { doc, onSnapshot, serverTimestamp, writeBatch } from 'firebase/firestore'
 import { db } from './firebase'
 
 function ensureFirestoreReady() {
@@ -13,13 +13,25 @@ export async function createUserProfile({ uid, nombre, email }) {
   const nombreLimpio = nombre.trim()
   const emailDelUsuario = email.trim().toLowerCase()
 
-  await setDoc(doc(db, 'users', uid), {
+  const userRef = doc(db, 'users', uid)
+  const directoryRef = doc(db, 'userDirectory', uid)
+  const batch = writeBatch(db)
+
+  batch.set(userRef, {
     nombre: nombreLimpio,
     email: emailDelUsuario,
     emailNormalizado: emailDelUsuario.toLowerCase(),
     saldo: 100000,
     creadoEn: serverTimestamp(),
   })
+
+  batch.set(directoryRef, {
+    uid,
+    nombre: nombreLimpio,
+    emailNormalizado: emailDelUsuario.toLowerCase(),
+  })
+
+  await batch.commit()
 }
 
 function mapUserProfile(snapshot) {
@@ -37,6 +49,8 @@ function mapUserProfile(snapshot) {
     email: data.email,
     emailNormalizado: data.emailNormalizado,
     saldo: rawBalance,
+    ultimaTransferenciaId: data.ultimaTransferenciaId,
+    actualizadoEn: data.actualizadoEn,
     creadoEn: data.creadoEn,
   }
 }
