@@ -15,6 +15,8 @@ const ERROR_MESSAGES = {
     'No tienes permisos para completar esta operacion en Firestore.',
   'app/firebase-not-configured':
     'Firebase no esta configurado. Revisa las variables reales en .env y reinicia Vite.',
+  'app/missing-user-id':
+    'No fue posible identificar al usuario autenticado. Cierra sesion e ingresa nuevamente.',
 }
 
 export function getFirebaseErrorMessage(error) {
