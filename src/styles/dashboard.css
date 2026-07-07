@@ -1,0 +1,183 @@
+.dashboard-card {
+  width: min(100%, 920px);
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  padding: 32px;
+  background: #ffffff;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  color: #111827;
+  font-size: clamp(2rem, 7vw, 3.4rem);
+  line-height: 1.05;
+}
+
+.dashboard-logout-button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 6px;
+  padding: 0 18px;
+  color: #1d4ed8;
+  background: #eff6ff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dashboard-logout-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.68;
+}
+
+.dashboard-logout-button:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.32);
+  outline-offset: 2px;
+}
+
+.dashboard-state {
+  border-radius: 8px;
+  padding: 18px;
+  color: #334155;
+  background: #f8fafc;
+}
+
+.dashboard-state p {
+  margin: 0;
+}
+
+.dashboard-state--error {
+  padding: 0;
+  background: transparent;
+}
+
+.dashboard-content {
+  display: grid;
+  gap: 20px;
+}
+
+.dashboard-welcome,
+.balance-card,
+.profile-summary,
+.dashboard-next-step {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 22px;
+  background: #ffffff;
+}
+
+.dashboard-welcome {
+  background: #f8fafc;
+}
+
+.dashboard-kicker {
+  margin: 0 0 8px;
+  color: #1d4ed8;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dashboard-welcome h2,
+.balance-card h2,
+.profile-summary h2 {
+  margin: 0;
+  color: #111827;
+}
+
+.dashboard-welcome h2 {
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
+}
+
+.dashboard-welcome p:last-child {
+  margin: 10px 0 0;
+  color: #475569;
+  overflow-wrap: anywhere;
+}
+
+.balance-card {
+  color: #ffffff;
+  background: #1d4ed8;
+}
+
+.balance-card .dashboard-kicker,
+.balance-card h2 {
+  color: #ffffff;
+}
+
+.balance-card h2 {
+  font-size: clamp(2rem, 9vw, 4rem);
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.profile-summary dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0 0;
+}
+
+.profile-summary div {
+  min-width: 0;
+}
+
+.profile-summary dt {
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.profile-summary dd {
+  margin: 4px 0 0;
+  color: #111827;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-next-step {
+  margin: 0;
+  color: #475569;
+  background: #f8fafc;
+}
+
+@media (max-width: 720px) {
+  .dashboard-card {
+    padding: 24px;
+  }
+
+  .dashboard-header {
+    display: grid;
+  }
+
+  .dashboard-logout-button {
+    width: 100%;
+  }
+
+  .profile-summary dl {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .dashboard-card {
+    padding: 20px;
+  }
+
+  .dashboard-welcome,
+  .balance-card,
+  .profile-summary,
+  .dashboard-next-step {
+    padding: 18px;
+  }
+}

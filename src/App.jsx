@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import LoginForm from './components/auth/LoginForm'
 import RegisterForm from './components/auth/RegisterForm'
-import SessionPanel from './components/auth/SessionPanel'
-import { subscribeToAuthState } from './services/authService'
+import Dashboard from './components/dashboard/Dashboard'
+import { logoutUser, subscribeToAuthState } from './services/authService'
 import { getFirebaseErrorMessage } from './services/firebaseErrors'
 import './styles/auth.css'
+import './styles/dashboard.css'
 
 const AUTH_MODES = {
   LOGIN: 'login',
@@ -17,12 +18,15 @@ function App() {
   const [authLoading, setAuthLoading] = useState(true)
   const [authError, setAuthError] = useState('')
   const [authOperationInProgress, setAuthOperationInProgress] = useState(false)
+  const [logoutLoading, setLogoutLoading] = useState(false)
+  const [logoutError, setLogoutError] = useState('')
 
   useEffect(() => {
     const unsubscribe = subscribeToAuthState(
       (user) => {
         setCurrentUser(user)
         setAuthError('')
+        setLogoutError('')
         setAuthLoading(false)
       },
       (error) => {
@@ -51,6 +55,19 @@ function App() {
     setAuthOperationInProgress(false)
   }
 
+  async function handleLogout() {
+    setLogoutError('')
+    setLogoutLoading(true)
+
+    try {
+      await logoutUser()
+    } catch (error) {
+      setLogoutError(getFirebaseErrorMessage(error))
+    } finally {
+      setLogoutLoading(false)
+    }
+  }
+
   if (authLoading) {
     return (
       <main className="auth-shell">
@@ -64,7 +81,12 @@ function App() {
   if (currentUser && !authOperationInProgress) {
     return (
       <main className="auth-shell">
-        <SessionPanel user={currentUser} />
+        <Dashboard
+          currentUser={currentUser}
+          onLogout={handleLogout}
+          logoutLoading={logoutLoading}
+          logoutError={logoutError}
+        />
       </main>
     )
   }
