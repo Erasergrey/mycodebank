@@ -13,6 +13,8 @@ const ERROR_MESSAGES = {
     'No se pudo conectar con Firebase. Revisa tu conexion a internet.',
   'permission-denied':
     'No tienes permisos para completar esta operacion en Firestore.',
+  'app/firebase-not-configured':
+    'Firebase no esta configurado. Revisa las variables reales en .env y reinicia Vite.',
 }
 
 export function getFirebaseErrorMessage(error) {

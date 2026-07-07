@@ -8,7 +8,15 @@ import {
 import { auth } from './firebase'
 import { createUserProfile } from './userService'
 
+function ensureAuthReady() {
+  if (!auth) {
+    throw { code: 'app/firebase-not-configured' }
+  }
+}
+
 export async function registerUser({ nombre, email, password }) {
+  ensureAuthReady()
+
   const nombreLimpio = nombre.trim()
   const emailNormalizado = email.trim().toLowerCase()
 
@@ -42,6 +50,8 @@ export async function registerUser({ nombre, email, password }) {
 }
 
 export async function loginUser({ email, password }) {
+  ensureAuthReady()
+
   const emailNormalizado = email.trim().toLowerCase()
   const userCredential = await signInWithEmailAndPassword(
     auth,
@@ -53,9 +63,16 @@ export async function loginUser({ email, password }) {
 }
 
 export function logoutUser() {
+  ensureAuthReady()
+
   return signOut(auth)
 }
 
 export function subscribeToAuthState(handleUser, handleError) {
+  if (!auth) {
+    handleError({ code: 'app/firebase-not-configured' })
+    return () => {}
+  }
+
   return onAuthStateChanged(auth, handleUser, handleError)
 }

@@ -1,7 +1,15 @@
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore'
 import { db } from './firebase'
 
+function ensureFirestoreReady() {
+  if (!db) {
+    throw { code: 'app/firebase-not-configured' }
+  }
+}
+
 export async function createUserProfile({ uid, nombre, email }) {
+  ensureFirestoreReady()
+
   const nombreLimpio = nombre.trim()
   const emailDelUsuario = email.trim().toLowerCase()
 
