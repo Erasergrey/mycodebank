@@ -151,7 +151,8 @@ function Dashboard({
         />
 
         <p className="dashboard-next-step">
-          Operaciones bancarias se agregaran en las siguientes fases.
+          XBank es un proyecto academico. Las operaciones disponibles son
+          simuladas y se sincronizan con Firebase.
         </p>
       </div>
     </Card>

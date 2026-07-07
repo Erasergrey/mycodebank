@@ -422,7 +422,8 @@
 
 .transaction-item__detail,
 .transaction-item__description,
-.transaction-item__date {
+.transaction-item__date,
+.transaction-item__operation {
   margin-top: 4px;
   color: var(--color-text-secondary);
   font-size: 0.9rem;
@@ -724,6 +725,27 @@
   font-weight: 800;
 }
 
+.transactions-filters {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+}
+
+.transactions-filters__grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.35fr) repeat(3, minmax(150px, 1fr));
+  gap: 14px;
+}
+
+.transactions-filters__search {
+  min-width: 0;
+}
+
+.transactions-filters__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 @media (max-width: 720px) {
   .dashboard-card {
     padding: 24px;
@@ -787,6 +809,15 @@
 
   .transaction-list__header {
     display: grid;
+  }
+
+  .transactions-filters__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .transactions-filters__actions,
+  .transactions-filters__actions .ui-button {
+    width: 100%;
   }
 
   .transaction-list__count {

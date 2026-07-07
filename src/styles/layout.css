@@ -333,6 +333,10 @@
   margin-bottom: 18px;
 }
 
+.app-page-loading {
+  padding: 28px;
+}
+
 .coming-soon-page {
   width: 100%;
   padding: 28px;

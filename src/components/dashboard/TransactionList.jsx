@@ -6,8 +6,9 @@ import LoadingSkeleton from '../ui/LoadingSkeleton'
 import TransactionItem from './TransactionItem'
 
 function TransactionList({
+  emptyAction = null,
   countLabel,
-  emptyDescription = 'Tus transferencias enviadas y recibidas apareceran aqui.',
+  emptyDescription = 'Tus movimientos apareceran aqui.',
   emptyTitle = 'Aun no tienes movimientos',
   error = '',
   isLoading = false,
@@ -55,6 +56,7 @@ function TransactionList({
       {!isLoading && !hasError && !hasTransactions && (
         <div className="transaction-list__state">
           <EmptyState title={emptyTitle}>{emptyDescription}</EmptyState>
+          {emptyAction}
           {onTransfer && (
             <Button type="button" variant="secondary" onClick={onTransfer}>
               Realizar primera transferencia

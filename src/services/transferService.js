@@ -8,7 +8,7 @@ import {
   serverTimestamp,
   where,
 } from 'firebase/firestore'
-import { db } from './firebase'
+import { db } from './firebaseDb'
 
 const USERS_COLLECTION = 'users'
 const DIRECTORY_COLLECTION = 'userDirectory'

@@ -4,8 +4,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from 'firebase/auth'
-import { auth } from './firebase'
-import { createUserProfile } from './userService'
+import { auth } from './firebaseAuth'
 
 function ensureAuthReady() {
   if (!auth) {
@@ -26,6 +25,8 @@ export async function registerUser({ nombre, email, password }) {
   )
 
   try {
+    const { createUserProfile } = await import('./userService')
+
     await createUserProfile({
       uid: userCredential.user.uid,
       nombre: nombreLimpio,

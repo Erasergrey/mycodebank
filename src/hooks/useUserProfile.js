@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getFirebaseErrorMessage } from '../services/firebaseErrors'
-import { subscribeToUserProfile } from '../services/userService'
 
 function useUserProfile(uid) {
   const [profile, setProfile] = useState(null)
@@ -33,42 +32,72 @@ function useUserProfile(uid) {
     setIsRealtime(false)
     setLoadedUid('')
 
-    try {
-      const unsubscribe = subscribeToUserProfile(
-        uid,
-        ({ profile: profileData, profileExists: nextProfileExists }) => {
-          setProfile(profileData)
-          setProfileExists(nextProfileExists)
-          setError('')
-          setIsRealtime(Boolean(profileData && nextProfileExists))
-          setIsLoading(false)
-          setLoadedUid(uid)
-        },
-        (profileError) => {
-          console.error('Realtime profile subscription failed:', {
-            code: profileError?.code,
-          })
+    let isCancelled = false
+    let unsubscribeProfile = null
 
-          setError(getFirebaseErrorMessage(profileError))
-          setIsRealtime(false)
-          setIsLoading(false)
-          setLoadedUid(uid)
-        },
-      )
+    async function connectProfile() {
+      try {
+        const { subscribeToUserProfile } = await import('../services/userService')
 
-      return unsubscribe
-    } catch (profileError) {
-      console.error('Realtime profile subscription failed:', {
-        code: profileError?.code,
-      })
+        if (isCancelled) {
+          return
+        }
 
-      setProfile(null)
-      setError(getFirebaseErrorMessage(profileError))
-      setProfileExists(false)
-      setIsRealtime(false)
-      setIsLoading(false)
-      setLoadedUid(uid)
-      return undefined
+        unsubscribeProfile = subscribeToUserProfile(
+          uid,
+          ({ profile: profileData, profileExists: nextProfileExists }) => {
+            if (isCancelled) {
+              return
+            }
+
+            setProfile(profileData)
+            setProfileExists(nextProfileExists)
+            setError('')
+            setIsRealtime(Boolean(profileData && nextProfileExists))
+            setIsLoading(false)
+            setLoadedUid(uid)
+          },
+          (profileError) => {
+            if (isCancelled) {
+              return
+            }
+
+            console.error('Realtime profile subscription failed:', {
+              code: profileError?.code,
+            })
+
+            setError(getFirebaseErrorMessage(profileError))
+            setIsRealtime(false)
+            setIsLoading(false)
+            setLoadedUid(uid)
+          },
+        )
+      } catch (profileError) {
+        if (isCancelled) {
+          return
+        }
+
+        console.error('Realtime profile subscription failed:', {
+          code: profileError?.code,
+        })
+
+        setProfile(null)
+        setError(getFirebaseErrorMessage(profileError))
+        setProfileExists(false)
+        setIsRealtime(false)
+        setIsLoading(false)
+        setLoadedUid(uid)
+      }
+    }
+
+    connectProfile()
+
+    return () => {
+      isCancelled = true
+
+      if (unsubscribeProfile) {
+        unsubscribeProfile()
+      }
     }
   }, [reloadToken, uid])
 

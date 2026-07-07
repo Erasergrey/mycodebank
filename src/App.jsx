@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import LoginForm from './components/auth/LoginForm'
 import RegisterForm from './components/auth/RegisterForm'
 import AppLayout from './components/layout/AppLayout'
@@ -9,13 +9,6 @@ import {
   getNavigationItemByPath,
   getSectionFromPath,
 } from './config/navigation'
-import DashboardPage from './pages/DashboardPage'
-import DepositPage from './pages/DepositPage'
-import HelpPage from './pages/HelpPage'
-import SettingsPage from './pages/SettingsPage'
-import TransactionsPage from './pages/TransactionsPage'
-import TransferPage from './pages/TransferPage'
-import WithdrawPage from './pages/WithdrawPage'
 import useRealtimeTransactions from './hooks/useRealtimeTransactions'
 import useUserProfile from './hooks/useUserProfile'
 import { logoutUser, subscribeToAuthState } from './services/authService'
@@ -23,6 +16,14 @@ import { getFirebaseErrorMessage } from './services/firebaseErrors'
 import './styles/auth.css'
 import './styles/dashboard.css'
 import './styles/layout.css'
+
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const DepositPage = lazy(() => import('./pages/DepositPage'))
+const HelpPage = lazy(() => import('./pages/HelpPage'))
+const SettingsPage = lazy(() => import('./pages/SettingsPage'))
+const TransactionsPage = lazy(() => import('./pages/TransactionsPage'))
+const TransferPage = lazy(() => import('./pages/TransferPage'))
+const WithdrawPage = lazy(() => import('./pages/WithdrawPage'))
 
 const AUTH_MODES = {
   LOGIN: 'login',
@@ -61,6 +62,14 @@ function isPublicAuthPath(pathname) {
     pathname === '/' ||
     pathname === AUTH_PATHS[AUTH_MODES.LOGIN] ||
     pathname === AUTH_PATHS[AUTH_MODES.REGISTER]
+  )
+}
+
+function PageLoadingFallback() {
+  return (
+    <section className="ui-card loading-panel app-page-loading" aria-live="polite">
+      <p>Cargando vista...</p>
+    </section>
   )
 }
 
@@ -332,7 +341,9 @@ function App() {
         profileError={profileError}
         profileLoading={profileLoading}
       >
-        {renderAuthenticatedPage()}
+        <Suspense fallback={<PageLoadingFallback />}>
+          {renderAuthenticatedPage()}
+        </Suspense>
       </AppLayout>
     )
   }

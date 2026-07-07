@@ -1,6 +1,4 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -15,14 +13,10 @@ const requiredFirebaseValues = Object.values(firebaseConfig)
 const hasFirebaseConfig = requiredFirebaseValues.every(Boolean)
 
 let app = null
-let auth = null
-let db = null
 
 if (hasFirebaseConfig) {
   try {
     app = initializeApp(firebaseConfig)
-    auth = getAuth(app)
-    db = getFirestore(app)
   } catch (error) {
     console.error('Firebase no pudo inicializarse.', {
       code: error?.code,
@@ -30,5 +24,5 @@ if (hasFirebaseConfig) {
   }
 }
 
-export { app, auth, db }
-export const isFirebaseConfigured = Boolean(auth && db)
+export { app }
+export const isFirebaseConfigured = Boolean(app)

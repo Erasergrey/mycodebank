@@ -24,6 +24,14 @@ function getIconName(direction) {
     : 'withdraw'
 }
 
+function getShortOperationId(value) {
+  if (!value) {
+    return 'No disponible'
+  }
+
+  return value.slice(0, 8).toUpperCase()
+}
+
 function TransactionItem({ transaction }) {
   const label = DIRECTION_LABELS[transaction.direction] ?? 'Movimiento'
   const sign = getAmountSign(transaction.direction)
@@ -66,6 +74,9 @@ function TransactionItem({ transaction }) {
         </p>
         <p className="transaction-item__date">
           {formatTransactionDate(transaction.date)}
+        </p>
+        <p className="transaction-item__operation">
+          Operacion: {getShortOperationId(transaction.operationId)}
         </p>
       </div>
 

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getTransactionErrorMessage } from '../services/firebaseErrors'
-import { subscribeToUserTransactions } from '../services/transactionService'
 
 function useRealtimeTransactions(uid) {
   const [transactions, setTransactions] = useState([])
@@ -30,41 +29,73 @@ function useRealtimeTransactions(uid) {
     setIsRealtime(false)
     setLoadedUid('')
 
-    try {
-      const unsubscribe = subscribeToUserTransactions({
-        uid,
-        onData: ({ transactions: nextTransactions }) => {
-          setTransactions(nextTransactions)
-          setError('')
-          setIsRealtime(true)
-          setIsLoading(false)
-          setLoadedUid(uid)
-        },
-        onError: (transactionsError) => {
-          console.error('Realtime transactions subscription failed:', {
-            code: transactionsError?.code,
-          })
+    let isCancelled = false
+    let unsubscribeTransactions = null
 
-          setTransactions([])
-          setError(getTransactionErrorMessage(transactionsError))
-          setIsRealtime(false)
-          setIsLoading(false)
-          setLoadedUid(uid)
-        },
-      })
+    async function connectTransactions() {
+      try {
+        const { subscribeToUserTransactions } = await import(
+          '../services/transactionService'
+        )
 
-      return unsubscribe
-    } catch (transactionsError) {
-      console.error('Realtime transactions subscription failed:', {
-        code: transactionsError?.code,
-      })
+        if (isCancelled) {
+          return
+        }
 
-      setTransactions([])
-      setError(getTransactionErrorMessage(transactionsError))
-      setIsRealtime(false)
-      setIsLoading(false)
-      setLoadedUid(uid)
-      return undefined
+        unsubscribeTransactions = subscribeToUserTransactions({
+          uid,
+          onData: ({ transactions: nextTransactions }) => {
+            if (isCancelled) {
+              return
+            }
+
+            setTransactions(nextTransactions)
+            setError('')
+            setIsRealtime(true)
+            setIsLoading(false)
+            setLoadedUid(uid)
+          },
+          onError: (transactionsError) => {
+            if (isCancelled) {
+              return
+            }
+
+            console.error('Realtime transactions subscription failed:', {
+              code: transactionsError?.code,
+            })
+
+            setTransactions([])
+            setError(getTransactionErrorMessage(transactionsError))
+            setIsRealtime(false)
+            setIsLoading(false)
+            setLoadedUid(uid)
+          },
+        })
+      } catch (transactionsError) {
+        if (isCancelled) {
+          return
+        }
+
+        console.error('Realtime transactions subscription failed:', {
+          code: transactionsError?.code,
+        })
+
+        setTransactions([])
+        setError(getTransactionErrorMessage(transactionsError))
+        setIsRealtime(false)
+        setIsLoading(false)
+        setLoadedUid(uid)
+      }
+    }
+
+    connectTransactions()
+
+    return () => {
+      isCancelled = true
+
+      if (unsubscribeTransactions) {
+        unsubscribeTransactions()
+      }
     }
   }, [retryToken, uid])
 

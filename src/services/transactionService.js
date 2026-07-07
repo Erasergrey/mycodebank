@@ -6,7 +6,7 @@ import {
   query,
   where,
 } from 'firebase/firestore'
-import { db } from './firebase'
+import { db } from './firebaseDb'
 
 const TRANSACTIONS_COLLECTION = 'movimientos'
 const VALID_TRANSACTION_TYPES = new Set(['transferencia', 'deposito', 'retiro'])
@@ -197,6 +197,7 @@ function mapTransactionDocument(snapshot, uid) {
 
   return {
     id: snapshot.id,
+    operationId: getOptionalString(data.operationId) || snapshot.id,
     senderUid,
     receiverUid,
     counterpartyName: counterparty.name,
