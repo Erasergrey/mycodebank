@@ -34,7 +34,7 @@ function validateRegisterForm(formValues) {
   return ''
 }
 
-function RegisterForm() {
+function RegisterForm({ onOperationEnd, onOperationStart }) {
   const [formValues, setFormValues] = useState(initialFormState)
   const [errorMessage, setErrorMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -60,6 +60,7 @@ function RegisterForm() {
     }
 
     setIsSubmitting(true)
+    onOperationStart()
 
     try {
       await registerUser({
@@ -77,6 +78,7 @@ function RegisterForm() {
       setErrorMessage(getFirebaseErrorMessage(error))
     } finally {
       setIsSubmitting(false)
+      onOperationEnd()
     }
   }
 

@@ -16,6 +16,7 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [authError, setAuthError] = useState('')
+  const [authOperationInProgress, setAuthOperationInProgress] = useState(false)
 
   useEffect(() => {
     const unsubscribe = subscribeToAuthState(
@@ -41,6 +42,15 @@ function App() {
     setAuthMode(AUTH_MODES.REGISTER)
   }
 
+  function handleAuthOperationStart() {
+    setAuthError('')
+    setAuthOperationInProgress(true)
+  }
+
+  function handleAuthOperationEnd() {
+    setAuthOperationInProgress(false)
+  }
+
   if (authLoading) {
     return (
       <main className="auth-shell">
@@ -51,7 +61,7 @@ function App() {
     )
   }
 
-  if (currentUser) {
+  if (currentUser && !authOperationInProgress) {
     return (
       <main className="auth-shell">
         <SessionPanel user={currentUser} />
@@ -93,7 +103,17 @@ function App() {
           </p>
         )}
 
-        {authMode === AUTH_MODES.LOGIN ? <LoginForm /> : <RegisterForm />}
+        {authMode === AUTH_MODES.LOGIN ? (
+          <LoginForm
+            onOperationStart={handleAuthOperationStart}
+            onOperationEnd={handleAuthOperationEnd}
+          />
+        ) : (
+          <RegisterForm
+            onOperationStart={handleAuthOperationStart}
+            onOperationEnd={handleAuthOperationEnd}
+          />
+        )}
       </section>
     </main>
   )

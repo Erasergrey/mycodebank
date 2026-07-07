@@ -19,7 +19,7 @@ function validateLoginForm(formValues) {
   return ''
 }
 
-function LoginForm() {
+function LoginForm({ onOperationEnd, onOperationStart }) {
   const [formValues, setFormValues] = useState(initialFormState)
   const [errorMessage, setErrorMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -45,6 +45,7 @@ function LoginForm() {
     }
 
     setIsSubmitting(true)
+    onOperationStart()
 
     try {
       await loginUser({
@@ -55,6 +56,7 @@ function LoginForm() {
       setErrorMessage(getFirebaseErrorMessage(error))
     } finally {
       setIsSubmitting(false)
+      onOperationEnd()
     }
   }
 
