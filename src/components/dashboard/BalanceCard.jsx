@@ -4,13 +4,16 @@ import Card from '../ui/Card'
 import LoadingSkeleton from '../ui/LoadingSkeleton'
 
 function BalanceCard({
+  accountExists = false,
   accountHolderName,
   accountIdentifier,
   balance,
-  hasError = false,
+  errorMessage = '',
   isLoading = false,
+  isRealtime = false,
 }) {
   const [isBalanceVisible, setIsBalanceVisible] = useState(true)
+  const hasError = Boolean(errorMessage)
   const hasValidBalance = typeof balance === 'number' && Number.isFinite(balance)
   const balanceLabel =
     hasValidBalance && isBalanceVisible
@@ -20,6 +23,26 @@ function BalanceCard({
 
   function handleToggleBalanceVisibility() {
     setIsBalanceVisible((isVisible) => !isVisible)
+  }
+
+  function getStatusMessage() {
+    if (isLoading) {
+      return 'Conectando con Firestore...'
+    }
+
+    if (hasError) {
+      return errorMessage
+    }
+
+    if (!accountExists) {
+      return 'No encontramos la cuenta asociada a este usuario.'
+    }
+
+    if (isRealtime && hasValidBalance) {
+      return 'Actualizado en tiempo real'
+    }
+
+    return 'Saldo no disponible'
   }
 
   return (
@@ -45,7 +68,7 @@ function BalanceCard({
             type="button"
             className="balance-card__toggle"
             onClick={handleToggleBalanceVisibility}
-            disabled={!hasValidBalance || hasError}
+            disabled={!hasValidBalance || hasError || !accountExists}
             aria-label={isBalanceVisible ? 'Ocultar saldo' : 'Mostrar saldo'}
           >
             {isBalanceVisible ? 'Ocultar saldo' : 'Mostrar saldo'}
@@ -53,10 +76,14 @@ function BalanceCard({
         </>
       )}
 
-      <p className="balance-card__status">
-        {hasError
-          ? 'No pudimos cargar el saldo del perfil.'
-          : 'Lectura inicial del perfil'}
+      <p
+        className={
+          isRealtime && !hasError
+            ? 'balance-card__status balance-card__status--live'
+            : 'balance-card__status'
+        }
+      >
+        {getStatusMessage()}
       </p>
     </Card>
   )

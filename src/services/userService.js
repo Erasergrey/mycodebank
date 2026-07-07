@@ -1,4 +1,4 @@
-import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore'
+import { doc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore'
 import { db } from './firebase'
 
 function ensureFirestoreReady() {
@@ -24,6 +24,11 @@ export async function createUserProfile({ uid, nombre, email }) {
 
 function mapUserProfile(snapshot) {
   const data = snapshot.data()
+  const rawBalance = data.saldo
+
+  if (typeof rawBalance !== 'number' || !Number.isFinite(rawBalance)) {
+    throw { code: 'app/invalid-balance' }
+  }
 
   return {
     id: snapshot.id,
@@ -31,12 +36,12 @@ function mapUserProfile(snapshot) {
     nombre: data.nombre,
     email: data.email,
     emailNormalizado: data.emailNormalizado,
-    saldo: data.saldo,
+    saldo: rawBalance,
     creadoEn: data.creadoEn,
   }
 }
 
-export async function getUserProfile(uid) {
+export function subscribeToUserProfile(uid, onData, onError) {
   ensureFirestoreReady()
 
   if (!uid) {
@@ -44,11 +49,29 @@ export async function getUserProfile(uid) {
   }
 
   const userRef = doc(db, 'users', uid)
-  const snapshot = await getDoc(userRef)
 
-  if (!snapshot.exists()) {
-    return null
-  }
+  return onSnapshot(
+    userRef,
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        onData({
+          profile: null,
+          profileExists: false,
+          fromCache: snapshot.metadata.fromCache,
+        })
+        return
+      }
 
-  return mapUserProfile(snapshot)
+      try {
+        onData({
+          profile: mapUserProfile(snapshot),
+          profileExists: true,
+          fromCache: snapshot.metadata.fromCache,
+        })
+      } catch (error) {
+        onError(error)
+      }
+    },
+    onError,
+  )
 }

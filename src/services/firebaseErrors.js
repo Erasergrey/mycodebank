@@ -16,11 +16,19 @@ const ERROR_MESSAGES = {
   'auth/network-request-failed':
     'No se pudo conectar con Firebase. Revisa tu conexion a internet.',
   'permission-denied':
-    'No tienes permisos para completar esta operacion en Firestore.',
+    'No tienes permisos para consultar esta cuenta.',
+  unauthenticated: 'Tu sesion expiro. Inicia sesion nuevamente.',
+  unavailable: 'El servicio no esta disponible temporalmente.',
+  'deadline-exceeded': 'La consulta tardo demasiado. Intenta nuevamente.',
+  cancelled: 'No pudimos completar la consulta. Intenta nuevamente.',
+  unknown: 'No pudimos cargar tu saldo.',
+  'not-found': 'No encontramos la informacion de tu cuenta.',
   'app/firebase-not-configured':
     'Firebase no esta configurado. Revisa las variables reales en .env y reinicia Vite.',
   'app/missing-user-id':
     'No fue posible identificar al usuario autenticado. Cierra sesion e ingresa nuevamente.',
+  'app/invalid-balance':
+    'No pudimos interpretar el saldo de tu cuenta.',
   'app/profile-creation-failed':
     'La cuenta fue creada en Authentication, pero no se pudo preparar el perfil bancario. Cierra sesion e intenta ingresar nuevamente.',
 }

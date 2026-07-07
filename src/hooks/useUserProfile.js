@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getFirebaseErrorMessage } from '../services/firebaseErrors'
-import { getUserProfile } from '../services/userService'
+import { subscribeToUserProfile } from '../services/userService'
 
 function useUserProfile(uid) {
   const [profile, setProfile] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [profileExists, setProfileExists] = useState(false)
+  const [isRealtime, setIsRealtime] = useState(false)
+  const [loadedUid, setLoadedUid] = useState('')
   const [reloadToken, setReloadToken] = useState(0)
 
   const reloadProfile = useCallback(() => {
@@ -17,52 +20,64 @@ function useUserProfile(uid) {
       setProfile(null)
       setIsLoading(false)
       setError('')
+      setProfileExists(false)
+      setIsRealtime(false)
+      setLoadedUid('')
       return undefined
     }
 
-    let isMounted = true
+    setProfile(null)
+    setIsLoading(true)
+    setError('')
+    setProfileExists(false)
+    setIsRealtime(false)
+    setLoadedUid('')
 
-    async function loadProfile() {
-      setIsLoading(true)
-      setError('')
-
-      try {
-        const profileData = await getUserProfile(uid)
-
-        if (!isMounted) {
-          return
-        }
-
-        setProfile(profileData)
-      } catch (profileError) {
-        console.error('Error loading user profile:', {
-          code: profileError?.code,
-        })
-
-        if (!isMounted) {
-          return
-        }
-
-        setProfile(null)
-        setError(getFirebaseErrorMessage(profileError))
-      } finally {
-        if (isMounted) {
+    try {
+      const unsubscribe = subscribeToUserProfile(
+        uid,
+        ({ profile: profileData, profileExists: nextProfileExists }) => {
+          setProfile(profileData)
+          setProfileExists(nextProfileExists)
+          setError('')
+          setIsRealtime(Boolean(profileData && nextProfileExists))
           setIsLoading(false)
-        }
-      }
-    }
+          setLoadedUid(uid)
+        },
+        (profileError) => {
+          console.error('Realtime profile subscription failed:', {
+            code: profileError?.code,
+          })
 
-    loadProfile()
+          setError(getFirebaseErrorMessage(profileError))
+          setIsRealtime(false)
+          setIsLoading(false)
+          setLoadedUid(uid)
+        },
+      )
 
-    return () => {
-      isMounted = false
+      return unsubscribe
+    } catch (profileError) {
+      console.error('Realtime profile subscription failed:', {
+        code: profileError?.code,
+      })
+
+      setProfile(null)
+      setError(getFirebaseErrorMessage(profileError))
+      setProfileExists(false)
+      setIsRealtime(false)
+      setIsLoading(false)
+      setLoadedUid(uid)
+      return undefined
     }
   }, [reloadToken, uid])
 
   return {
     profile,
-    isLoading,
+    isLoading: isLoading || Boolean(uid && loadedUid !== uid),
     error,
+    profileExists,
+    isRealtime,
     reloadProfile,
   }
 }

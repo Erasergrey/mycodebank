@@ -17,6 +17,7 @@ function Dashboard({
   displayName,
   hasProfile,
   isProfileLoading,
+  isRealtime,
   logoutLoading,
   onDeposit,
   onLogout,
@@ -27,7 +28,7 @@ function Dashboard({
   profileError,
 }) {
   const hasProfileError = Boolean(profileError)
-  const showProfileData = !isProfileLoading && !hasProfileError && hasProfile
+  const showProfileData = !isProfileLoading && hasProfile
 
   return (
     <Card className="dashboard-card" aria-labelledby="dashboard-title">
@@ -88,8 +89,10 @@ function Dashboard({
           accountHolderName={showProfileData ? displayName : 'Usuario'}
           accountIdentifier={accountIdentifier}
           balance={showProfileData ? balance : null}
-          hasError={hasProfileError}
+          accountExists={hasProfile}
+          errorMessage={profileError}
           isLoading={isProfileLoading}
+          isRealtime={isRealtime && showProfileData && !hasProfileError}
         />
 
         {showProfileData && (
@@ -133,8 +136,7 @@ function Dashboard({
         <TransactionList onViewTransactions={onViewTransactions} />
 
         <p className="dashboard-next-step">
-          Saldo en tiempo real, historial y operaciones se agregaran en las
-          siguientes fases.
+          Historial y operaciones se agregaran en las siguientes fases.
         </p>
       </div>
     </Card>

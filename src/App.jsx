@@ -89,6 +89,7 @@ function App() {
     profile,
     isLoading: profileLoading,
     error: profileError,
+    isRealtime: profileRealtime,
     reloadProfile,
   } = useUserProfile(currentUser?.uid)
 
@@ -242,6 +243,7 @@ function App() {
       profile,
       profileError,
       profileLoading,
+      profileRealtime,
       reloadProfile,
     }
 

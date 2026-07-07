@@ -10,6 +10,7 @@ function DashboardPage({
   profile,
   profileError,
   profileLoading,
+  profileRealtime,
   reloadProfile,
 }) {
   const displayName = getDisplayName({ currentUser, profile })
@@ -25,6 +26,7 @@ function DashboardPage({
       displayName={displayName}
       hasProfile={Boolean(profile)}
       isProfileLoading={profileLoading}
+      isRealtime={profileRealtime}
       logoutLoading={logoutLoading}
       onDeposit={() => onNavigate(APP_SECTIONS.DEPOSIT)}
       onLogout={onLogout}

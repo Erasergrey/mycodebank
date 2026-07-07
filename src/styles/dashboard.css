@@ -150,10 +150,22 @@
 }
 
 .balance-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   margin: 14px 0 0;
   color: rgba(255, 255, 255, 0.86);
   font-size: 0.88rem;
   font-weight: 700;
+}
+
+.balance-card__status--live::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-green-positive);
+  box-shadow: 0 0 18px rgba(34, 197, 94, 0.62);
 }
 
 .balance-card__toggle {
