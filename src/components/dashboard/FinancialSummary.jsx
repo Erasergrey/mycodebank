@@ -1,11 +1,11 @@
 import Card from '../ui/Card'
 import LoadingSkeleton from '../ui/LoadingSkeleton'
 
-function FinancialSummary({ isLoading }) {
+function FinancialSummary({ isLoading, transactionCount = null }) {
   const items = [
-    ['Ingresos del mes', '-'],
-    ['Egresos del mes', '-'],
-    ['Movimientos', '-'],
+    ['Ingresos del mes', 'Proximamente'],
+    ['Egresos del mes', 'Proximamente'],
+    ['Movimientos', Number.isInteger(transactionCount) ? transactionCount : '-'],
     ['Ultima actualizacion', '-'],
   ]
 

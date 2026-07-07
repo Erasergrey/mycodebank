@@ -16,6 +16,7 @@ import SettingsPage from './pages/SettingsPage'
 import TransactionsPage from './pages/TransactionsPage'
 import TransferPage from './pages/TransferPage'
 import WithdrawPage from './pages/WithdrawPage'
+import useRealtimeTransactions from './hooks/useRealtimeTransactions'
 import useUserProfile from './hooks/useUserProfile'
 import { logoutUser, subscribeToAuthState } from './services/authService'
 import { getFirebaseErrorMessage } from './services/firebaseErrors'
@@ -92,6 +93,12 @@ function App() {
     isRealtime: profileRealtime,
     reloadProfile,
   } = useUserProfile(currentUser?.uid)
+  const {
+    transactions,
+    isLoading: transactionsLoading,
+    error: transactionsError,
+    retryTransactions,
+  } = useRealtimeTransactions(currentUser?.uid)
 
   useEffect(() => {
     const unsubscribe = subscribeToAuthState(
@@ -245,13 +252,25 @@ function App() {
       profileLoading,
       profileRealtime,
       reloadProfile,
+      retryTransactions,
+      transactions,
+      transactionsError,
+      transactionsLoading,
     }
 
     switch (activeSection) {
       case APP_SECTIONS.TRANSFER:
         return <TransferPage />
       case APP_SECTIONS.TRANSACTIONS:
-        return <TransactionsPage />
+        return (
+          <TransactionsPage
+            onRetryTransactions={retryTransactions}
+            onTransfer={() => handleNavigate(APP_SECTIONS.TRANSFER)}
+            transactions={transactions}
+            transactionsError={transactionsError}
+            transactionsLoading={transactionsLoading}
+          />
+        )
       case APP_SECTIONS.DEPOSIT:
         return <DepositPage />
       case APP_SECTIONS.WITHDRAW:

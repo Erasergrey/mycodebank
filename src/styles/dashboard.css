@@ -308,14 +308,180 @@
   font-weight: 900;
 }
 
-.transaction-list__empty {
+.transaction-list__header,
+.transaction-item,
+.transaction-item__title-row,
+.transaction-list__footer {
+  display: flex;
+}
+
+.transaction-list__header {
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.transaction-list__count {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.transaction-list__loading {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.transaction-list__state {
   display: grid;
   gap: 14px;
   color: var(--color-text-secondary);
 }
 
-.transaction-list__empty p {
+.transaction-list__state p {
   margin: 0;
+}
+
+.transaction-list__items {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.transaction-item {
+  min-width: 0;
+  align-items: flex-start;
+  gap: 14px;
+  border: 1px solid rgba(36, 50, 71, 0.78);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(7, 17, 31, 0.42);
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.transaction-item:hover {
+  border-color: rgba(56, 189, 248, 0.24);
+  background: rgba(56, 189, 248, 0.08);
+  transform: translateY(-1px);
+}
+
+.transaction-item__icon {
+  width: 44px;
+  height: 44px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 15px;
+}
+
+.transaction-item--positive .transaction-item__icon {
+  color: var(--color-green-positive);
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.transaction-item--negative .transaction-item__icon {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.transaction-item__main {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.transaction-item__title-row {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.transaction-item h3,
+.transaction-item p {
+  margin: 0;
+}
+
+.transaction-item h3 {
+  color: var(--color-text-light);
+  font-size: 1rem;
+}
+
+.transaction-item__counterparty {
+  margin-top: 6px;
+  color: var(--color-text-light);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.transaction-item__detail,
+.transaction-item__description,
+.transaction-item__date {
+  margin-top: 4px;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.transaction-item__status {
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 999px;
+  padding: 3px 9px;
+  color: var(--color-text-secondary);
+  background: rgba(148, 163, 184, 0.08);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.transaction-item__amount {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--color-text-light);
+  font-size: 1.08rem;
+  font-weight: 900;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.transaction-item__amount--positive {
+  color: var(--color-green-positive);
+}
+
+.transaction-item__amount--negative {
+  color: #fecaca;
+}
+
+.transaction-list__footer {
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.transactions-page {
+  display: grid;
+  gap: 20px;
+}
+
+.transactions-page__header {
+  padding: 28px;
+}
+
+.transactions-page__header h2 {
+  margin: 0;
+  color: var(--color-text-light);
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  line-height: 1.05;
+}
+
+.transactions-page__header p:last-child {
+  margin: 12px 0 0;
+  color: var(--color-text-secondary);
+  font-weight: 800;
 }
 
 @media (max-width: 720px) {
@@ -338,6 +504,17 @@
   .quick-actions__grid,
   .financial-summary__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .transaction-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .transaction-item__amount {
+    grid-column: 2;
+    margin-left: 0;
+    text-align: left;
   }
 }
 
@@ -365,5 +542,17 @@
   .financial-summary__grid,
   .profile-summary dl {
     grid-template-columns: 1fr;
+  }
+
+  .transaction-list__header {
+    display: grid;
+  }
+
+  .transaction-list__count {
+    white-space: normal;
+  }
+
+  .transaction-list__footer .ui-button {
+    width: 100%;
   }
 }

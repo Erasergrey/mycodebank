@@ -12,10 +12,15 @@ function DashboardPage({
   profileLoading,
   profileRealtime,
   reloadProfile,
+  retryTransactions,
+  transactions = [],
+  transactionsError = '',
+  transactionsLoading = false,
 }) {
   const displayName = getDisplayName({ currentUser, profile })
   const displayEmail = getDisplayEmail({ currentUser, profile })
   const accountIdentifier = getAccountIdentifier(currentUser?.uid)
+  const recentTransactions = transactions.slice(0, 5)
 
   return (
     <Dashboard
@@ -31,10 +36,15 @@ function DashboardPage({
       onDeposit={() => onNavigate(APP_SECTIONS.DEPOSIT)}
       onLogout={onLogout}
       onRetryProfile={reloadProfile}
+      onRetryTransactions={retryTransactions}
       onTransfer={() => onNavigate(APP_SECTIONS.TRANSFER)}
       onViewTransactions={() => onNavigate(APP_SECTIONS.TRANSACTIONS)}
       onWithdraw={() => onNavigate(APP_SECTIONS.WITHDRAW)}
       profileError={profileError}
+      transactionCount={transactions.length}
+      transactions={recentTransactions}
+      transactionsError={transactionsError}
+      transactionsLoading={transactionsLoading}
     />
   )
 }

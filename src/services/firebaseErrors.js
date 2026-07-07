@@ -33,6 +33,28 @@ const ERROR_MESSAGES = {
     'La cuenta fue creada en Authentication, pero no se pudo preparar el perfil bancario. Cierra sesion e intenta ingresar nuevamente.',
 }
 
+const TRANSACTION_ERROR_MESSAGES = {
+  'permission-denied': 'No tienes permisos para consultar estos movimientos.',
+  unauthenticated: 'Tu sesion expiro. Inicia sesion nuevamente.',
+  unavailable: 'El historial no esta disponible temporalmente.',
+  'failed-precondition':
+    'El historial requiere una configuracion adicional de Firestore.',
+  'deadline-exceeded': 'La consulta tardo demasiado. Intenta nuevamente.',
+  cancelled: 'No pudimos completar la consulta. Intenta nuevamente.',
+  unknown: 'No pudimos cargar tus movimientos.',
+  'app/firebase-not-configured':
+    'Firebase no esta configurado. Revisa las variables reales en .env y reinicia Vite.',
+  'app/missing-user-id':
+    'No fue posible identificar al usuario autenticado. Cierra sesion e ingresa nuevamente.',
+}
+
 export function getFirebaseErrorMessage(error) {
   return ERROR_MESSAGES[error?.code] ?? DEFAULT_ERROR_MESSAGE
+}
+
+export function getTransactionErrorMessage(error) {
+  return (
+    TRANSACTION_ERROR_MESSAGES[error?.code] ??
+    'No pudimos cargar tus movimientos.'
+  )
 }

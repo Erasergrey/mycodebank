@@ -26,6 +26,14 @@ service cloud.firestore {
         && request.resource.data.creadoEn is timestamp;
     }
 
+    function isMovementParticipant() {
+      return request.auth != null
+        && (
+          request.auth.uid == resource.data.emisorUid
+          || request.auth.uid == resource.data.receptorUid
+        );
+    }
+
     // Reglas temporales para autenticacion; se actualizaran al implementar transferencias.
     match /users/{uid} {
       allow create: if isSignedInUser(uid)
@@ -34,6 +42,11 @@ service cloud.firestore {
 
       allow read: if isSignedInUser(uid);
       allow update, delete: if false;
+    }
+
+    match /movimientos/{movementId} {
+      allow read: if isMovementParticipant();
+      allow create, update, delete: if false;
     }
 
     match /{document=**} {

@@ -21,11 +21,16 @@ function Dashboard({
   logoutLoading,
   onDeposit,
   onLogout,
+  onRetryTransactions,
   onRetryProfile,
   onTransfer,
   onViewTransactions,
   onWithdraw,
   profileError,
+  transactionCount = 0,
+  transactions = [],
+  transactionsError = '',
+  transactionsLoading = false,
 }) {
   const hasProfileError = Boolean(profileError)
   const showProfileData = !isProfileLoading && hasProfile
@@ -131,12 +136,22 @@ function Dashboard({
           />
         )}
 
-        <FinancialSummary isLoading={isProfileLoading} />
+        <FinancialSummary
+          isLoading={isProfileLoading || transactionsLoading}
+          transactionCount={transactionCount}
+        />
 
-        <TransactionList onViewTransactions={onViewTransactions} />
+        <TransactionList
+          error={transactionsError}
+          isLoading={transactionsLoading}
+          onRetry={onRetryTransactions}
+          onTransfer={onTransfer}
+          onViewTransactions={onViewTransactions}
+          transactions={transactions}
+        />
 
         <p className="dashboard-next-step">
-          Historial y operaciones se agregaran en las siguientes fases.
+          Operaciones bancarias se agregaran en las siguientes fases.
         </p>
       </div>
     </Card>
