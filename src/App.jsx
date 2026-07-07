@@ -6,6 +6,7 @@ import {
   APP_SECTIONS,
   DEFAULT_SECTION,
   getNavigationItem,
+  getNavigationItemByPath,
   getSectionFromPath,
 } from './config/navigation'
 import DashboardPage from './pages/DashboardPage'
@@ -27,6 +28,17 @@ const AUTH_MODES = {
   REGISTER: 'register',
 }
 
+const AUTH_PATHS = {
+  [AUTH_MODES.LOGIN]: '/login',
+  [AUTH_MODES.REGISTER]: '/register',
+}
+
+function getAuthModeFromPath(pathname) {
+  return pathname === AUTH_PATHS[AUTH_MODES.REGISTER]
+    ? AUTH_MODES.REGISTER
+    : AUTH_MODES.LOGIN
+}
+
 function getInitialSection() {
   if (typeof window === 'undefined') {
     return DEFAULT_SECTION
@@ -35,8 +47,37 @@ function getInitialSection() {
   return getSectionFromPath(window.location.pathname)
 }
 
+function getInitialAuthMode() {
+  if (typeof window === 'undefined') {
+    return AUTH_MODES.LOGIN
+  }
+
+  return getAuthModeFromPath(window.location.pathname)
+}
+
+function isPublicAuthPath(pathname) {
+  return (
+    pathname === '/' ||
+    pathname === AUTH_PATHS[AUTH_MODES.LOGIN] ||
+    pathname === AUTH_PATHS[AUTH_MODES.REGISTER]
+  )
+}
+
+function navigateToPath(path, { replace = false } = {}) {
+  if (typeof window === 'undefined' || window.location.pathname === path) {
+    return
+  }
+
+  if (replace) {
+    window.history.replaceState(null, '', path)
+    return
+  }
+
+  window.history.pushState(null, '', path)
+}
+
 function App() {
-  const [authMode, setAuthMode] = useState(AUTH_MODES.LOGIN)
+  const [authMode, setAuthMode] = useState(getInitialAuthMode)
   const [activeSection, setActiveSection] = useState(getInitialSection)
   const [currentUser, setCurrentUser] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
@@ -69,12 +110,66 @@ function App() {
   }, [])
 
   useEffect(() => {
+    if (authLoading || typeof window === 'undefined') {
+      return
+    }
+
+    const currentPath = window.location.pathname
+
+    if (currentUser) {
+      const privateItem = getNavigationItemByPath(currentPath)
+
+      if (privateItem) {
+        setActiveSection(privateItem.id)
+        return
+      }
+
+      setActiveSection(DEFAULT_SECTION)
+      navigateToPath('/dashboard', { replace: true })
+      return
+    }
+
+    if (isPublicAuthPath(currentPath)) {
+      setAuthMode(getAuthModeFromPath(currentPath))
+      return
+    }
+
+    setAuthMode(AUTH_MODES.LOGIN)
+    navigateToPath(AUTH_PATHS[AUTH_MODES.LOGIN], { replace: true })
+  }, [authLoading, currentUser])
+
+  useEffect(() => {
     if (typeof window === 'undefined') {
       return undefined
     }
 
     function handlePopState() {
-      setActiveSection(getSectionFromPath(window.location.pathname))
+      if (authLoading) {
+        return
+      }
+
+      const currentPath = window.location.pathname
+
+      if (currentUser) {
+        const privateItem = getNavigationItemByPath(currentPath)
+
+        if (privateItem) {
+          setActiveSection(privateItem.id)
+          return
+        }
+
+        setActiveSection(DEFAULT_SECTION)
+        navigateToPath('/dashboard', { replace: true })
+        return
+      }
+
+      if (isPublicAuthPath(currentPath)) {
+        setAuthMode(getAuthModeFromPath(currentPath))
+        return
+      }
+
+      setAuthMode(AUTH_MODES.LOGIN)
+      navigateToPath(AUTH_PATHS[AUTH_MODES.LOGIN], { replace: true })
     }
 
     window.addEventListener('popstate', handlePopState)
@@ -82,7 +177,7 @@ function App() {
     return () => {
       window.removeEventListener('popstate', handlePopState)
     }
-  }, [])
+  }, [authLoading, currentUser])
 
   useEffect(() => {
     if (!currentUser?.uid) {
@@ -119,10 +214,14 @@ function App() {
 
   function handleShowLogin() {
     setAuthMode(AUTH_MODES.LOGIN)
+    setAuthError('')
+    navigateToPath(AUTH_PATHS[AUTH_MODES.LOGIN])
   }
 
   function handleShowRegister() {
     setAuthMode(AUTH_MODES.REGISTER)
+    setAuthError('')
+    navigateToPath(AUTH_PATHS[AUTH_MODES.REGISTER])
   }
 
   function handleAuthOperationStart() {
@@ -146,9 +245,7 @@ function App() {
       await logoutUser()
       setActiveSection(DEFAULT_SECTION)
 
-      if (typeof window !== 'undefined' && window.location.pathname !== '/') {
-        window.history.replaceState(null, '', '/')
-      }
+      navigateToPath(AUTH_PATHS[AUTH_MODES.LOGIN], { replace: true })
     } catch (error) {
       setLogoutError(getFirebaseErrorMessage(error))
     } finally {
@@ -166,12 +263,7 @@ function App() {
     setActiveSection(item.id)
     setLogoutError('')
 
-    if (
-      typeof window !== 'undefined' &&
-      window.location.pathname !== item.path
-    ) {
-      window.history.pushState(null, '', item.path)
-    }
+    navigateToPath(item.path)
   }
 
   function renderAuthenticatedPage() {

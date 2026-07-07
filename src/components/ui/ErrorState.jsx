@@ -1,6 +1,6 @@
-function ErrorState({ children }) {
+function ErrorState({ children, ...props }) {
   return (
-    <p className="ui-error-state" role="alert">
+    <p className="ui-error-state" role="alert" {...props}>
       {children}
     </p>
   )

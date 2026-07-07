@@ -15,60 +15,105 @@ const initialFormState = {
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function validateRegisterForm(formValues) {
+  const fieldErrors = {}
   const nombreLimpio = formValues.nombre.trim()
   const emailNormalizado = formValues.email.trim().toLowerCase()
 
-  if (nombreLimpio.length < 2) {
-    return 'Ingresa un nombre de al menos 2 caracteres.'
+  if (!nombreLimpio) {
+    fieldErrors.nombre = 'Ingresa tu nombre.'
+  } else if (nombreLimpio.length < 2) {
+    fieldErrors.nombre = 'Ingresa un nombre de al menos 2 caracteres.'
   }
 
-  if (!emailPattern.test(emailNormalizado)) {
-    return 'Ingresa un correo valido.'
+  if (!emailNormalizado) {
+    fieldErrors.email = 'Ingresa tu correo.'
+  } else if (!emailPattern.test(emailNormalizado)) {
+    fieldErrors.email = 'Ingresa un correo valido.'
   }
 
-  if (formValues.password.length < 6) {
-    return 'La contrasena debe tener al menos 6 caracteres.'
+  if (!formValues.password) {
+    fieldErrors.password = 'Ingresa una contrasena.'
+  } else if (formValues.password.length < 6) {
+    fieldErrors.password = 'La contrasena debe tener al menos 6 caracteres.'
   }
 
-  if (formValues.password !== formValues.confirmPassword) {
-    return 'Las contrasenas no coinciden.'
+  if (!formValues.confirmPassword) {
+    fieldErrors.confirmPassword = 'Confirma tu contrasena.'
+  } else if (formValues.password !== formValues.confirmPassword) {
+    fieldErrors.confirmPassword = 'Las contrasenas no coinciden.'
   }
 
-  return ''
+  return fieldErrors
 }
 
 function RegisterForm({ onOperationEnd, onOperationStart }) {
   const [formValues, setFormValues] = useState(initialFormState)
+  const [fieldErrors, setFieldErrors] = useState({})
   const [errorMessage, setErrorMessage] = useState('')
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false)
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
+    useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  function handleInputChange(event) {
-    const { name, value } = event.target
-
+  function updateFieldValue(fieldName, value) {
     setFormValues((currentValues) => ({
       ...currentValues,
-      [name]: value,
+      [fieldName]: value,
     }))
+    setFieldErrors((currentErrors) => ({
+      ...currentErrors,
+      [fieldName]: '',
+    }))
+  }
+
+  function handleNameChange(event) {
+    updateFieldValue('nombre', event.target.value)
+  }
+
+  function handleEmailChange(event) {
+    updateFieldValue('email', event.target.value)
+  }
+
+  function handlePasswordChange(event) {
+    updateFieldValue('password', event.target.value)
+  }
+
+  function handleConfirmPasswordChange(event) {
+    updateFieldValue('confirmPassword', event.target.value)
+  }
+
+  function handleTogglePasswordVisibility() {
+    setIsPasswordVisible((isVisible) => !isVisible)
+  }
+
+  function handleToggleConfirmPasswordVisibility() {
+    setIsConfirmPasswordVisible((isVisible) => !isVisible)
   }
 
   async function handleRegisterSubmit(event) {
     event.preventDefault()
-    setErrorMessage('')
 
-    const validationError = validateRegisterForm(formValues)
-
-    if (validationError) {
-      setErrorMessage(validationError)
+    if (isSubmitting) {
       return
     }
 
+    setErrorMessage('')
+
+    const validationErrors = validateRegisterForm(formValues)
+
+    if (Object.values(validationErrors).some(Boolean)) {
+      setFieldErrors(validationErrors)
+      return
+    }
+
+    setFieldErrors({})
     setIsSubmitting(true)
     onOperationStart()
 
     try {
       await registerUser({
-        nombre: formValues.nombre,
-        email: formValues.email,
+        nombre: formValues.nombre.trim(),
+        email: formValues.email.trim().toLowerCase(),
         password: formValues.password,
       })
 
@@ -86,16 +131,22 @@ function RegisterForm({ onOperationEnd, onOperationStart }) {
   }
 
   return (
-    <form className="auth-form" onSubmit={handleRegisterSubmit} noValidate>
+    <form
+      className="auth-form"
+      onSubmit={handleRegisterSubmit}
+      noValidate
+      aria-busy={isSubmitting}
+    >
       <Input
         id="register-name"
         label="Nombre"
         name="nombre"
         type="text"
         value={formValues.nombre}
-        onChange={handleInputChange}
+        onChange={handleNameChange}
         disabled={isSubmitting}
         autoComplete="name"
+        errorMessage={fieldErrors.nombre}
         minLength="2"
         required
       />
@@ -106,9 +157,10 @@ function RegisterForm({ onOperationEnd, onOperationStart }) {
         name="email"
         type="email"
         value={formValues.email}
-        onChange={handleInputChange}
+        onChange={handleEmailChange}
         disabled={isSubmitting}
         autoComplete="email"
+        errorMessage={fieldErrors.email}
         required
       />
 
@@ -116,12 +168,26 @@ function RegisterForm({ onOperationEnd, onOperationStart }) {
         id="register-password"
         label="Contrasena"
         name="password"
-        type="password"
+        type={isPasswordVisible ? 'text' : 'password'}
         value={formValues.password}
-        onChange={handleInputChange}
+        onChange={handlePasswordChange}
         disabled={isSubmitting}
         autoComplete="new-password"
+        errorMessage={fieldErrors.password}
         minLength="6"
+        action={
+          <button
+            type="button"
+            className="password-toggle"
+            onClick={handleTogglePasswordVisibility}
+            disabled={isSubmitting}
+            aria-label={
+              isPasswordVisible ? 'Ocultar contrasena' : 'Mostrar contrasena'
+            }
+          >
+            {isPasswordVisible ? 'Ocultar' : 'Mostrar'}
+          </button>
+        }
         required
       />
 
@@ -129,18 +195,40 @@ function RegisterForm({ onOperationEnd, onOperationStart }) {
         id="register-confirm-password"
         label="Confirmar contrasena"
         name="confirmPassword"
-        type="password"
+        type={isConfirmPasswordVisible ? 'text' : 'password'}
         value={formValues.confirmPassword}
-        onChange={handleInputChange}
+        onChange={handleConfirmPasswordChange}
         disabled={isSubmitting}
         autoComplete="new-password"
+        errorMessage={fieldErrors.confirmPassword}
         minLength="6"
+        action={
+          <button
+            type="button"
+            className="password-toggle"
+            onClick={handleToggleConfirmPasswordVisibility}
+            disabled={isSubmitting}
+            aria-label={
+              isConfirmPasswordVisible
+                ? 'Ocultar confirmacion de contrasena'
+                : 'Mostrar confirmacion de contrasena'
+            }
+          >
+            {isConfirmPasswordVisible ? 'Ocultar' : 'Mostrar'}
+          </button>
+        }
         required
       />
 
-      {errorMessage && <ErrorState>{errorMessage}</ErrorState>}
+      {errorMessage && (
+        <ErrorState id="register-form-error">{errorMessage}</ErrorState>
+      )}
 
-      <Button type="submit" disabled={isSubmitting}>
+      <Button
+        type="submit"
+        disabled={isSubmitting}
+        aria-describedby={errorMessage ? 'register-form-error' : undefined}
+      >
         {isSubmitting ? 'Creando cuenta...' : 'Crear cuenta'}
       </Button>
     </form>

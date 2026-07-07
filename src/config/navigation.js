@@ -59,8 +59,12 @@ export function getNavigationItem(sectionId) {
   return NAV_ITEMS.find((item) => item.id === sectionId)
 }
 
+export function getNavigationItemByPath(pathname) {
+  return NAV_ITEMS.find((item) => item.path === pathname)
+}
+
 export function getSectionFromPath(pathname) {
-  const item = NAV_ITEMS.find((navItem) => navItem.path === pathname)
+  const item = getNavigationItemByPath(pathname)
 
   return item?.id ?? DEFAULT_SECTION
 }

@@ -111,6 +111,49 @@
   width: 100%;
 }
 
+.field-control {
+  position: relative;
+  display: grid;
+}
+
+.field-control .ui-input {
+  padding-right: 96px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  min-height: 34px;
+  border: 1px solid rgba(56, 189, 248, 0.24);
+  border-radius: 12px;
+  padding: 0 10px;
+  color: var(--color-bright-blue);
+  background: rgba(56, 189, 248, 0.1);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.password-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.password-toggle:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.field-error {
+  margin: 2px 0 0;
+  color: #fecaca;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 .field-group input:disabled,
 .primary-button:disabled,
 .secondary-button:disabled,
