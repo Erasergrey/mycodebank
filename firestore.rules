@@ -1,0 +1,31 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Reglas temporales para autenticacion; se actualizaran al implementar transferencias.
+    match /users/{uid} {
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly([
+          'nombre',
+          'email',
+          'emailNormalizado',
+          'saldo',
+          'creadoEn'
+        ])
+        && request.resource.data.nombre is string
+        && request.resource.data.nombre.size() >= 2
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.emailNormalizado == request.auth.token.email
+        && request.resource.data.saldo == 100000
+        && request.resource.data.creadoEn == request.time;
+
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
