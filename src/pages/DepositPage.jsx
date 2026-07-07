@@ -1,12 +1,7 @@
-import ComingSoonPage from './ComingSoonPage'
+import AccountOperationPage from '../components/account/AccountOperationPage'
 
-function DepositPage() {
-  return (
-    <ComingSoonPage
-      title="Depositar"
-      description="Los depositos se integraran cuando avancemos a las operaciones bancarias."
-    />
-  )
+function DepositPage(props) {
+  return <AccountOperationPage {...props} operationType="deposit" />
 }
 
 export default DepositPage

@@ -271,6 +271,7 @@ export async function transferMoney({
       })
 
       const movementData = {
+        operationId: movementRef.id,
         emisorUid: senderAccount.uid,
         receptorUid: recipientAccount.uid,
         emisorEmail: senderAccount.email,

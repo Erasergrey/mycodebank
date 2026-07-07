@@ -134,14 +134,14 @@ function getCounterparty({ data, direction, receiverUid, senderUid }) {
 
   if (direction === 'deposit') {
     return {
-      name: 'Deposito XBank',
+      name: 'XBank Demo',
       email: null,
       identifier: '',
     }
   }
 
   return {
-    name: 'Retiro XBank',
+    name: 'XBank Demo',
     email: null,
     identifier: '',
   }

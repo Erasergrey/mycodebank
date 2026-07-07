@@ -280,9 +280,25 @@ function App() {
           />
         )
       case APP_SECTIONS.DEPOSIT:
-        return <DepositPage />
+        return (
+          <DepositPage
+            currentUser={currentUser}
+            onGoDashboard={() => handleNavigate(APP_SECTIONS.DASHBOARD)}
+            onViewTransactions={() => handleNavigate(APP_SECTIONS.TRANSACTIONS)}
+            profile={profile}
+            profileLoading={profileLoading}
+          />
+        )
       case APP_SECTIONS.WITHDRAW:
-        return <WithdrawPage />
+        return (
+          <WithdrawPage
+            currentUser={currentUser}
+            onGoDashboard={() => handleNavigate(APP_SECTIONS.DASHBOARD)}
+            onViewTransactions={() => handleNavigate(APP_SECTIONS.TRANSACTIONS)}
+            profile={profile}
+            profileLoading={profileLoading}
+          />
+        )
       case APP_SECTIONS.SETTINGS:
         return <SettingsPage />
       case APP_SECTIONS.HELP:

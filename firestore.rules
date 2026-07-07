@@ -97,8 +97,24 @@ service cloud.firestore {
         && request.resource.data.creadoEn == resource.data.creadoEn;
     }
 
-    function isValidTransferMovementData() {
+    function isSimulatedCounterparty(uid) {
+      return uid == 'xbank-demo';
+    }
+
+    function isValidSimulatedAmount(amount) {
+      return amount is int
+        && amount > 0
+        && amount <= 1000000;
+    }
+
+    function isPositiveIntAmount(amount) {
+      return amount is int
+        && amount > 0;
+    }
+
+    function isValidOperationMovementBase(movementId) {
       return request.resource.data.keys().hasOnly([
+          'operationId',
           'emisorUid',
           'receptorUid',
           'emisorEmail',
@@ -112,10 +128,9 @@ service cloud.firestore {
           'fecha'
         ])
         && request.resource.data.keys().hasAll([
+          'operationId',
           'emisorUid',
           'receptorUid',
-          'emisorEmail',
-          'receptorEmail',
           'emisorNombre',
           'receptorNombre',
           'monto',
@@ -123,19 +138,16 @@ service cloud.firestore {
           'estado',
           'fecha'
         ])
-        && request.resource.data.emisorUid == request.auth.uid
+        && request.resource.data.operationId == movementId
+        && request.resource.data.emisorUid is string
         && request.resource.data.receptorUid is string
-        && request.resource.data.receptorUid != request.resource.data.emisorUid
-        && request.resource.data.emisorEmail == request.auth.token.email
-        && request.resource.data.receptorEmail is string
+        && request.resource.data.emisorUid != request.resource.data.receptorUid
         && request.resource.data.emisorNombre is string
         && request.resource.data.receptorNombre is string
-        && request.resource.data.monto is int
-        && request.resource.data.monto > 0
-        && request.resource.data.tipo == 'transferencia'
         && request.resource.data.estado == 'completado'
         && request.resource.data.fecha is timestamp
         && request.resource.data.fecha == request.time
+        && isPositiveIntAmount(request.resource.data.monto)
         && (
           !request.resource.data.keys().hasAny(['descripcion'])
           || (
@@ -145,13 +157,47 @@ service cloud.firestore {
         );
     }
 
-    function isMovementLinkedToUserUpdates(movementId) {
+    function isTransferMovementData(movementId) {
+      return isValidOperationMovementBase(movementId)
+        && request.resource.data.keys().hasAll([
+          'emisorEmail',
+          'receptorEmail'
+        ])
+        && request.resource.data.emisorUid == request.auth.uid
+        && request.resource.data.receptorUid != request.resource.data.emisorUid
+        && request.resource.data.emisorEmail == request.auth.token.email
+        && request.resource.data.receptorEmail is string
+        && request.resource.data.tipo == 'transferencia';
+    }
+
+    function isMovementLinkedToTransferUpdates(movementId) {
       return userAfter(request.resource.data.emisorUid).data.ultimaTransferenciaId == movementId
         && userAfter(request.resource.data.receptorUid).data.ultimaTransferenciaId == movementId
         && userAfter(request.resource.data.emisorUid).data.saldo
           == userBefore(request.resource.data.emisorUid).data.saldo - request.resource.data.monto
         && userAfter(request.resource.data.receptorUid).data.saldo
           == userBefore(request.resource.data.receptorUid).data.saldo + request.resource.data.monto;
+    }
+
+    function isMovementLinkedToAccountUpdate(movementId) {
+      return userAfter(request.auth.uid).data.ultimaTransferenciaId == movementId
+        && (
+          (
+            request.resource.data.tipo == 'deposito'
+            && request.resource.data.receptorUid == request.auth.uid
+            && isSimulatedCounterparty(request.resource.data.emisorUid)
+            && userAfter(request.auth.uid).data.saldo
+              == userBefore(request.auth.uid).data.saldo + request.resource.data.monto
+          )
+          || (
+            request.resource.data.tipo == 'retiro'
+            && request.resource.data.emisorUid == request.auth.uid
+            && isSimulatedCounterparty(request.resource.data.receptorUid)
+            && userBefore(request.auth.uid).data.saldo >= request.resource.data.monto
+            && userAfter(request.auth.uid).data.saldo
+              == userBefore(request.auth.uid).data.saldo - request.resource.data.monto
+          )
+        );
     }
 
     function isLinkedSenderUpdate(uid, movementId) {
@@ -168,6 +214,30 @@ service cloud.firestore {
         && movementAfter(movementId).data.emisorUid != uid
         && request.resource.data.saldo
           == resource.data.saldo + movementAfter(movementId).data.monto;
+    }
+
+    function isLinkedAccountOperationUpdate(uid, movementId) {
+      return request.auth.uid == uid
+        && movementAfter(movementId).data.operationId == movementId
+        && movementAfter(movementId).data.fecha == request.time
+        && isValidSimulatedAmount(movementAfter(movementId).data.monto)
+        && (
+          (
+            movementAfter(movementId).data.tipo == 'deposito'
+            && movementAfter(movementId).data.receptorUid == uid
+            && isSimulatedCounterparty(movementAfter(movementId).data.emisorUid)
+            && request.resource.data.saldo
+              == resource.data.saldo + movementAfter(movementId).data.monto
+          )
+          || (
+            movementAfter(movementId).data.tipo == 'retiro'
+            && movementAfter(movementId).data.emisorUid == uid
+            && isSimulatedCounterparty(movementAfter(movementId).data.receptorUid)
+            && resource.data.saldo >= movementAfter(movementId).data.monto
+            && request.resource.data.saldo
+              == resource.data.saldo - movementAfter(movementId).data.monto
+          )
+        );
     }
 
     function isValidTransferBalanceUpdate(uid) {
@@ -187,12 +257,13 @@ service cloud.firestore {
         && (
           isLinkedSenderUpdate(uid, request.resource.data.ultimaTransferenciaId)
           || isLinkedRecipientUpdate(uid, request.resource.data.ultimaTransferenciaId)
+          || isLinkedAccountOperationUpdate(uid, request.resource.data.ultimaTransferenciaId)
         );
     }
 
     function isValidTransferMovementCreate(movementId) {
       return request.auth != null
-        && isValidTransferMovementData()
+        && isTransferMovementData(movementId)
         && userBefore(request.resource.data.emisorUid).data.saldo is int
         && userBefore(request.resource.data.receptorUid).data.saldo is int
         && userBefore(request.resource.data.emisorUid).data.saldo >= request.resource.data.monto
@@ -204,7 +275,43 @@ service cloud.firestore {
           == userBefore(request.resource.data.emisorUid).data.nombre
         && request.resource.data.receptorNombre
           == userBefore(request.resource.data.receptorUid).data.nombre
-        && isMovementLinkedToUserUpdates(movementId);
+        && isMovementLinkedToTransferUpdates(movementId);
+    }
+
+    function isValidDepositMovementCreate(movementId) {
+      return request.auth != null
+        && isValidOperationMovementBase(movementId)
+        && request.resource.data.keys().hasAll(['receptorEmail'])
+        && request.resource.data.tipo == 'deposito'
+        && isValidSimulatedAmount(request.resource.data.monto)
+        && isSimulatedCounterparty(request.resource.data.emisorUid)
+        && request.resource.data.receptorUid == request.auth.uid
+        && request.resource.data.receptorEmail == userBefore(request.auth.uid).data.email
+        && request.resource.data.receptorNombre == userBefore(request.auth.uid).data.nombre
+        && request.resource.data.emisorNombre == 'XBank Demo'
+        && !request.resource.data.keys().hasAny(['emisorEmail'])
+        && isMovementLinkedToAccountUpdate(movementId);
+    }
+
+    function isValidWithdrawalMovementCreate(movementId) {
+      return request.auth != null
+        && isValidOperationMovementBase(movementId)
+        && request.resource.data.keys().hasAll(['emisorEmail'])
+        && request.resource.data.tipo == 'retiro'
+        && isValidSimulatedAmount(request.resource.data.monto)
+        && request.resource.data.emisorUid == request.auth.uid
+        && isSimulatedCounterparty(request.resource.data.receptorUid)
+        && request.resource.data.emisorEmail == userBefore(request.auth.uid).data.email
+        && request.resource.data.emisorNombre == userBefore(request.auth.uid).data.nombre
+        && request.resource.data.receptorNombre == 'XBank Demo'
+        && !request.resource.data.keys().hasAny(['receptorEmail'])
+        && isMovementLinkedToAccountUpdate(movementId);
+    }
+
+    function isValidFinancialMovementCreate(movementId) {
+      return isValidTransferMovementCreate(movementId)
+        || isValidDepositMovementCreate(movementId)
+        || isValidWithdrawalMovementCreate(movementId);
     }
 
     // Reglas temporales para autenticacion; se actualizaran al implementar transferencias.
@@ -240,7 +347,7 @@ service cloud.firestore {
 
     match /movimientos/{movementId} {
       allow read: if isMovementParticipant();
-      allow create: if isValidTransferMovementCreate(movementId);
+      allow create: if isValidFinancialMovementCreate(movementId);
       allow update, delete: if false;
     }
 

@@ -4,8 +4,8 @@ import LayoutIcon from '../layout/LayoutIcon'
 const DIRECTION_LABELS = {
   sent: 'Transferencia enviada',
   received: 'Transferencia recibida',
-  deposit: 'Deposito',
-  withdrawal: 'Retiro',
+  deposit: 'Deposito simulado',
+  withdrawal: 'Retiro simulado',
 }
 
 const STATUS_LABELS = {

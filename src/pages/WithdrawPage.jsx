@@ -1,12 +1,7 @@
-import ComingSoonPage from './ComingSoonPage'
+import AccountOperationPage from '../components/account/AccountOperationPage'
 
-function WithdrawPage() {
-  return (
-    <ComingSoonPage
-      title="Retirar"
-      description="Los retiros quedaran disponibles en la fase de operaciones."
-    />
-  )
+function WithdrawPage(props) {
+  return <AccountOperationPage {...props} operationType="withdrawal" />
 }
 
 export default WithdrawPage
