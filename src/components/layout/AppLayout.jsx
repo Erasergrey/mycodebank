@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react'
+import { useId, useState } from 'react'
 import { NAV_ITEMS } from '../../config/navigation'
 import ErrorState from '../ui/ErrorState'
 import Header from './Header'
@@ -19,28 +19,18 @@ function AppLayout({
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const mobileMenuId = useId()
+  const layoutClasses = [
+    'app-layout',
+    isMobileMenuOpen ? 'app-layout--mobile-menu-open' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
 
-  useEffect(() => {
-    if (!isMobileMenuOpen) {
-      return undefined
+  function handleLayoutKeyDown(event) {
+    if (event.key === 'Escape') {
+      setIsMobileMenuOpen(false)
     }
-
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-
-    function handleKeyDown(event) {
-      if (event.key === 'Escape') {
-        setIsMobileMenuOpen(false)
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-
-    return () => {
-      document.body.style.overflow = previousOverflow
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [isMobileMenuOpen])
+  }
 
   function handleNavigate(sectionId) {
     onNavigate(sectionId)
@@ -53,7 +43,7 @@ function AppLayout({
   }
 
   return (
-    <div className="app-layout">
+    <div className={layoutClasses} onKeyDown={handleLayoutKeyDown}>
       <Sidebar
         activeSection={activeSection}
         navItems={NAV_ITEMS}

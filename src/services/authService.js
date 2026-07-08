@@ -1,5 +1,6 @@
 import {
   createUserWithEmailAndPassword,
+  deleteUser,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
@@ -32,22 +33,34 @@ export async function registerUser({ nombre, email, password }) {
       nombre: nombreLimpio,
       email: userCredential.user.email ?? emailNormalizado,
     })
-  } catch (error) {
+  } catch (profileError) {
     // Authentication y Firestore no forman una transaccion unica.
     console.error('La cuenta Auth fue creada, pero fallo el perfil Firestore.', {
-      code: error?.code,
+      code: profileError?.code,
     })
 
     try {
-      await signOut(auth)
-    } catch (signOutError) {
-      console.error('No se pudo cerrar la sesion del registro incompleto.', {
-        originalCode: error?.code,
-        signOutCode: signOutError?.code,
+      await deleteUser(userCredential.user)
+    } catch (rollbackError) {
+      console.error('No se pudo revertir la cuenta Auth incompleta.', {
+        originalCode: profileError?.code,
+        rollbackCode: rollbackError?.code,
       })
+
+      try {
+        await signOut(auth)
+      } catch (signOutError) {
+        console.error('No se pudo cerrar la sesion tras rollback fallido.', {
+          originalCode: profileError?.code,
+          signOutCode: signOutError?.code,
+        })
+      }
     }
 
-    throw { code: 'app/profile-creation-failed', originalError: error }
+    throw {
+      code: 'app/profile-creation-failed',
+      originalCode: profileError?.code,
+    }
   }
 
   return userCredential.user

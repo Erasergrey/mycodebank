@@ -30,7 +30,7 @@ const ERROR_MESSAGES = {
   'app/invalid-balance':
     'No pudimos interpretar el saldo de tu cuenta.',
   'app/profile-creation-failed':
-    'La cuenta fue creada en Authentication, pero no se pudo preparar el perfil bancario. Cierra sesion e intenta ingresar nuevamente.',
+    'No pudimos preparar tu perfil bancario. Intenta registrarte nuevamente.',
 }
 
 const TRANSACTION_ERROR_MESSAGES = {

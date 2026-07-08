@@ -5,6 +5,11 @@
   color: var(--color-text-light);
 }
 
+.app-layout--mobile-menu-open {
+  max-height: 100vh;
+  overflow: hidden;
+}
+
 .app-layout__workspace {
   min-width: 0;
   display: grid;
