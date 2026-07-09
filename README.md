@@ -1,10 +1,10 @@
-# XBank - Mini Banco Digital
+# MyCodeBank - Mini Banco Digital
 
 ## Descripcion
 
-XBank es una SPA educativa construida con React, Vite y Firebase. Permite registrar usuarios, iniciar sesion, consultar saldo en tiempo real, transferir entre cuentas XBank, revisar historial, realizar depositos simulados y realizar retiros simulados.
+MyCodeBank es una SPA educativa construida con React, Vite y Firebase. Permite registrar usuarios, iniciar sesion, consultar saldo en tiempo real, transferir entre cuentas MyCodeBank, revisar historial, realizar depositos simulados y realizar retiros simulados.
 
-XBank es un proyecto academico. No representa una institucion financiera ni opera con dinero real.
+MyCodeBank es un proyecto academico. No representa una institucion financiera ni opera con dinero real.
 
 ## Tecnologias
 
