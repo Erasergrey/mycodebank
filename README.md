@@ -26,7 +26,7 @@ MyCodeBank es un proyecto academico. No representa una institucion financiera ni
 
 ```bash
 git clone <URL_DEL_REPOSITORIO>
-cd mini-banco-react
+cd MyCodeBank
 npm install
 ```
 
