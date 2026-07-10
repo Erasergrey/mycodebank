@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import {
   AUTH_MODES,
   AUTH_PATHS,
-  getCurrentInternalPath,
   getAuthModeFromPath,
+  getCurrentInternalPath,
   isPublicAuthPath,
   navigateToPath,
 } from '../config/auth'
@@ -72,7 +72,7 @@ function useAppNavigation({ authLoading, currentUser }) {
       return undefined
     }
 
-    function handleRouteChange() {
+    function handleHashChange() {
       if (authLoading) {
         return
       }
@@ -80,12 +80,10 @@ function useAppNavigation({ authLoading, currentUser }) {
       resolvePathState({ currentUser, setActiveSection, setAuthMode })
     }
 
-    window.addEventListener('popstate', handleRouteChange)
-    window.addEventListener('hashchange', handleRouteChange)
+    window.addEventListener('hashchange', handleHashChange)
 
     return () => {
-      window.removeEventListener('popstate', handleRouteChange)
-      window.removeEventListener('hashchange', handleRouteChange)
+      window.removeEventListener('hashchange', handleHashChange)
     }
   }, [authLoading, currentUser])
 
