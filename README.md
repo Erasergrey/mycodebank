@@ -1,10 +1,16 @@
-# XBank - Mini Banco Digital
+# MyCodeBank - Mini Banco Digital
 
 ## Descripcion
 
-XBank es una SPA educativa construida con React, Vite y Firebase. Permite registrar usuarios, iniciar sesion, consultar saldo en tiempo real, transferir entre cuentas XBank, revisar historial, realizar depositos simulados y realizar retiros simulados.
+MyCodeBank es una SPA educativa construida con React, Vite y Firebase. Permite registrar usuarios, iniciar sesion, consultar saldo en tiempo real, transferir entre cuentas MyCodeBank, revisar historial, realizar depositos simulados y realizar retiros simulados.
 
-XBank es un proyecto academico. No representa una institucion financiera ni opera con dinero real.
+MyCodeBank es un proyecto academico. No representa una institucion financiera ni opera con dinero real.
+
+## Demo 
+
+https://erasergrey.github.io/mycodebank/
+
+
 
 ## Tecnologias
 
@@ -26,7 +32,7 @@ XBank es un proyecto academico. No representa una institucion financiera ni oper
 
 ```bash
 git clone <URL_DEL_REPOSITORIO>
-cd mini-banco-react
+cd MyCodeBank
 npm install
 ```
 
@@ -158,14 +164,9 @@ firebase deploy --only firestore:rules,firestore:indexes
 La evaluacion solicita dos usuarios de prueba. Usar cuentas academicas desechables y entregar contrasenas por canal privado.
 
 ```text
-Usuario 1
-Correo: usuario1@ejemplo.cl
-Contrasena: entregada al profesor por canal privado
+## Usuarios de prueba
 
-Usuario 2
-Correo: usuario2@ejemplo.cl
-Contrasena: entregada al profesor por canal privado
-```
+Entregados en privado
 
 ## Pruebas sugeridas
 
