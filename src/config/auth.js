@@ -3,6 +3,40 @@ export const AUTH_MODES = {
   REGISTER: 'register',
 }
 
+const BASE_PATH = import.meta.env.BASE_URL ?? '/'
+
+function normalizeBasePath(basePath) {
+  if (!basePath || basePath === '/') {
+    return ''
+  }
+
+  return basePath.endsWith('/') ? basePath.slice(0, -1) : basePath
+}
+
+export const APP_BASE_PATH = normalizeBasePath(BASE_PATH)
+
+export function toInternalPath(pathname) {
+  if (!APP_BASE_PATH) {
+    return pathname || '/'
+  }
+
+  if (pathname === APP_BASE_PATH) {
+    return '/'
+  }
+
+  if (pathname.startsWith(`${APP_BASE_PATH}/`)) {
+    return pathname.slice(APP_BASE_PATH.length) || '/'
+  }
+
+  return pathname || '/'
+}
+
+export function toPublicPath(internalPath) {
+  const cleanPath = internalPath.startsWith('/') ? internalPath : `/${internalPath}`
+
+  return `${APP_BASE_PATH}${cleanPath}` || '/'
+}
+
 export const AUTH_PATHS = {
   [AUTH_MODES.LOGIN]: '/login',
   [AUTH_MODES.REGISTER]: '/register',
@@ -23,14 +57,16 @@ export function isPublicAuthPath(pathname) {
 }
 
 export function navigateToPath(path, { replace = false } = {}) {
-  if (typeof window === 'undefined' || window.location.pathname === path) {
+  const publicPath = toPublicPath(path)
+
+  if (typeof window === 'undefined' || window.location.pathname === publicPath) {
     return
   }
 
   if (replace) {
-    window.history.replaceState(null, '', path)
+    window.history.replaceState(null, '', publicPath)
     return
   }
 
-  window.history.pushState(null, '', path)
+  window.history.pushState(null, '', publicPath)
 }

@@ -5,6 +5,7 @@ import {
   getAuthModeFromPath,
   isPublicAuthPath,
   navigateToPath,
+  toInternalPath,
 } from '../config/auth'
 import {
   DEFAULT_SECTION,
@@ -18,7 +19,7 @@ function getInitialSection() {
     return DEFAULT_SECTION
   }
 
-  return getSectionFromPath(window.location.pathname)
+  return getSectionFromPath(toInternalPath(window.location.pathname))
 }
 
 function getInitialAuthMode() {
@@ -26,11 +27,11 @@ function getInitialAuthMode() {
     return AUTH_MODES.LOGIN
   }
 
-  return getAuthModeFromPath(window.location.pathname)
+  return getAuthModeFromPath(toInternalPath(window.location.pathname))
 }
 
 function resolvePathState({ currentUser, setActiveSection, setAuthMode }) {
-  const currentPath = window.location.pathname
+  const currentPath = toInternalPath(window.location.pathname)
 
   if (currentUser) {
     const privateItem = getNavigationItemByPath(currentPath)
