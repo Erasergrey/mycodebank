@@ -158,13 +158,15 @@ firebase deploy --only firestore:rules,firestore:indexes
 La evaluacion solicita dos usuarios de prueba. Usar cuentas academicas desechables y entregar contrasenas por canal privado.
 
 ```text
-Usuario 1
-Correo: usuario1@ejemplo.cl
-Contrasena: entregada al profesor por canal privado
+## Usuarios de prueba
 
-Usuario 2
-Correo: usuario2@ejemplo.cl
-Contrasena: entregada al profesor por canal privado
+Usuario 1:
+- Correo: mycodebank.demo1@ejemplo.cl
+- Contraseña: Prueba123
+
+Usuario 2:
+- Correo: mycodebank.demo2@ejemplo.cl
+- Contraseña: Prueba123
 ```
 
 ## Pruebas sugeridas
