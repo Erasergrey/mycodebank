@@ -15,26 +15,29 @@ function normalizeBasePath(basePath) {
 
 export const APP_BASE_PATH = normalizeBasePath(BASE_PATH)
 
-export function toInternalPath(pathname) {
-  if (!APP_BASE_PATH) {
-    return pathname || '/'
-  }
+export function toInternalPath(hash) {
+  const cleanHash = hash?.startsWith('#') ? hash.slice(1) : hash
 
-  if (pathname === APP_BASE_PATH) {
+  if (!cleanHash) {
     return '/'
   }
 
-  if (pathname.startsWith(`${APP_BASE_PATH}/`)) {
-    return pathname.slice(APP_BASE_PATH.length) || '/'
+  return cleanHash.startsWith('/') ? cleanHash : `/${cleanHash}`
+}
+
+export function getCurrentInternalPath() {
+  if (typeof window === 'undefined') {
+    return '/'
   }
 
-  return pathname || '/'
+  return toInternalPath(window.location.hash)
 }
 
 export function toPublicPath(internalPath) {
-  const cleanPath = internalPath.startsWith('/') ? internalPath : `/${internalPath}`
+  const path = internalPath || '/'
+  const cleanPath = path.startsWith('/') ? path : `/${path}`
 
-  return `${APP_BASE_PATH}${cleanPath}` || '/'
+  return `${APP_BASE_PATH}/#${cleanPath}`
 }
 
 export const AUTH_PATHS = {
@@ -59,7 +62,13 @@ export function isPublicAuthPath(pathname) {
 export function navigateToPath(path, { replace = false } = {}) {
   const publicPath = toPublicPath(path)
 
-  if (typeof window === 'undefined' || window.location.pathname === publicPath) {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  const currentPublicPath = `${window.location.pathname}${window.location.hash}`
+
+  if (currentPublicPath === publicPath) {
     return
   }
 

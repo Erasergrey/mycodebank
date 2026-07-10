@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react'
 import {
   AUTH_MODES,
   AUTH_PATHS,
+  getCurrentInternalPath,
   getAuthModeFromPath,
   isPublicAuthPath,
   navigateToPath,
-  toInternalPath,
 } from '../config/auth'
 import {
   DEFAULT_SECTION,
@@ -19,7 +19,7 @@ function getInitialSection() {
     return DEFAULT_SECTION
   }
 
-  return getSectionFromPath(toInternalPath(window.location.pathname))
+  return getSectionFromPath(getCurrentInternalPath())
 }
 
 function getInitialAuthMode() {
@@ -27,11 +27,11 @@ function getInitialAuthMode() {
     return AUTH_MODES.LOGIN
   }
 
-  return getAuthModeFromPath(toInternalPath(window.location.pathname))
+  return getAuthModeFromPath(getCurrentInternalPath())
 }
 
 function resolvePathState({ currentUser, setActiveSection, setAuthMode }) {
-  const currentPath = toInternalPath(window.location.pathname)
+  const currentPath = getCurrentInternalPath()
 
   if (currentUser) {
     const privateItem = getNavigationItemByPath(currentPath)
@@ -72,7 +72,7 @@ function useAppNavigation({ authLoading, currentUser }) {
       return undefined
     }
 
-    function handlePopState() {
+    function handleRouteChange() {
       if (authLoading) {
         return
       }
@@ -80,10 +80,12 @@ function useAppNavigation({ authLoading, currentUser }) {
       resolvePathState({ currentUser, setActiveSection, setAuthMode })
     }
 
-    window.addEventListener('popstate', handlePopState)
+    window.addEventListener('popstate', handleRouteChange)
+    window.addEventListener('hashchange', handleRouteChange)
 
     return () => {
-      window.removeEventListener('popstate', handlePopState)
+      window.removeEventListener('popstate', handleRouteChange)
+      window.removeEventListener('hashchange', handleRouteChange)
     }
   }, [authLoading, currentUser])
 
