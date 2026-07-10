@@ -166,14 +166,7 @@ La evaluacion solicita dos usuarios de prueba. Usar cuentas academicas desechabl
 ```text
 ## Usuarios de prueba
 
-Usuario 1:
-- Correo: mycodebank.demo1@ejemplo.cl
-- Contraseña: Prueba123
-
-Usuario 2:
-- Correo: mycodebank.demo2@ejemplo.cl
-- Contraseña: Prueba123
-```
+Entregados en privado
 
 ## Pruebas sugeridas
 
