@@ -3,26 +3,9 @@ export const AUTH_MODES = {
   REGISTER: 'register',
 }
 
-const BASE_PATH = import.meta.env.BASE_URL ?? '/'
-
-function normalizeBasePath(basePath) {
-  if (!basePath || basePath === '/') {
-    return ''
-  }
-
-  return basePath.endsWith('/') ? basePath.slice(0, -1) : basePath
-}
-
-export const APP_BASE_PATH = normalizeBasePath(BASE_PATH)
-
-export function toInternalPath(hash) {
-  const cleanHash = hash?.startsWith('#') ? hash.slice(1) : hash
-
-  if (!cleanHash) {
-    return '/'
-  }
-
-  return cleanHash.startsWith('/') ? cleanHash : `/${cleanHash}`
+export const AUTH_PATHS = {
+  [AUTH_MODES.LOGIN]: '/login',
+  [AUTH_MODES.REGISTER]: '/register',
 }
 
 export function getCurrentInternalPath() {
@@ -30,19 +13,13 @@ export function getCurrentInternalPath() {
     return '/'
   }
 
-  return toInternalPath(window.location.hash)
-}
+  const hashPath = window.location.hash.replace(/^#/, '')
 
-export function toPublicPath(internalPath) {
-  const path = internalPath || '/'
-  const cleanPath = path.startsWith('/') ? path : `/${path}`
+  if (!hashPath) {
+    return '/'
+  }
 
-  return `${APP_BASE_PATH}/#${cleanPath}`
-}
-
-export const AUTH_PATHS = {
-  [AUTH_MODES.LOGIN]: '/login',
-  [AUTH_MODES.REGISTER]: '/register',
+  return hashPath.startsWith('/') ? hashPath : `/${hashPath}`
 }
 
 export function getAuthModeFromPath(pathname) {
@@ -60,22 +37,21 @@ export function isPublicAuthPath(pathname) {
 }
 
 export function navigateToPath(path, { replace = false } = {}) {
-  const publicPath = toPublicPath(path)
-
   if (typeof window === 'undefined') {
     return
   }
 
-  const currentPublicPath = `${window.location.pathname}${window.location.hash}`
+  const cleanPath = path.startsWith('/') ? path : `/${path}`
+  const nextHash = `#${cleanPath}`
 
-  if (currentPublicPath === publicPath) {
+  if (window.location.hash === nextHash) {
     return
   }
 
   if (replace) {
-    window.history.replaceState(null, '', publicPath)
+    window.location.replace(nextHash)
     return
   }
 
-  window.history.pushState(null, '', publicPath)
+  window.location.hash = cleanPath
 }
