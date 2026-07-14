@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import TransactionList from '../components/dashboard/TransactionList'
+import TransactionHistory from '../components/transactions/TransactionHistory'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 
@@ -138,6 +138,8 @@ function getResultCountLabel(count) {
 }
 
 function TransactionsPage({
+  currentUserEmail = '',
+  currentUserId = '',
   onRetryTransactions,
   onTransfer,
   transactions = [],
@@ -291,8 +293,10 @@ function TransactionsPage({
         </div>
       </Card>
 
-      <TransactionList
+      <TransactionHistory
         countLabel={countLabel}
+        currentUserEmail={currentUserEmail}
+        currentUserId={currentUserId}
         emptyAction={
           transactions.length > 0 && hasActiveFilters ? (
             <Button
@@ -311,6 +315,7 @@ function TransactionsPage({
         kicker="Cuenta XBank"
         onRetry={onRetryTransactions}
         onTransfer={transactions.length === 0 ? onTransfer : undefined}
+        sortOrder={sortOrder}
         title="Historial completo"
         transactions={visibleTransactions}
       />
