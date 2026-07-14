@@ -11,6 +11,19 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],
+      include: [
+        'src/utils/**/*.js',
+        'src/components/auth/LoginForm.jsx',
+        'src/components/transfer/TransferForm.jsx',
+        'src/components/transactions/TransactionHistory.jsx',
+      ],
+      exclude: [
+        'src/**/*.test.js',
+        'src/**/*.test.jsx',
+        'src/test/**',
+        'src/services/firebase.js',
+        'src/main.jsx',
+      ],
     },
   },
 })
