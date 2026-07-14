@@ -1,29 +1,16 @@
 import { useEffect, useState } from 'react'
 import LayoutIcon from '../components/layout/LayoutIcon'
+import TransferForm from '../components/transfer/TransferForm'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import ErrorState from '../components/ui/ErrorState'
-import Input from '../components/ui/Input'
 import {
   findRecipientByEmail,
   getTransferErrorMessage,
-  isValidTransferEmail,
-  normalizeEmail,
-  normalizeTransferDescription,
-  parseTransferAmount,
   transferMoney,
   TransferError,
 } from '../services/transferService'
 import { formatCurrency, formatTransactionDate } from '../utils/formatters'
-import { getInitials } from '../utils/userDisplay'
-
-const initialFormState = {
-  recipientEmail: '',
-  amount: '',
-  description: '',
-}
-
-const DESCRIPTION_MAX_LENGTH = 120
 
 function getShortOperationId(value) {
   if (!value) {
@@ -46,9 +33,9 @@ function TransferPage({
   profile,
   profileLoading,
 }) {
-  const [formValues, setFormValues] = useState(initialFormState)
-  const [fieldErrors, setFieldErrors] = useState({})
   const [formError, setFormError] = useState('')
+  const [formFieldErrors, setFormFieldErrors] = useState({})
+  const [formResetKey, setFormResetKey] = useState(0)
   const [recipient, setRecipient] = useState(null)
   const [recipientLookupEmail, setRecipientLookupEmail] = useState('')
   const [isSearchingRecipient, setIsSearchingRecipient] = useState(false)
@@ -81,81 +68,18 @@ function TransferPage({
     }
   }, [confirmation, isSubmitting, transferResult])
 
-  function updateFieldValue(fieldName, value) {
-    setFormValues((currentValues) => ({
-      ...currentValues,
-      [fieldName]: value,
-    }))
-    setFieldErrors((currentErrors) => ({
-      ...currentErrors,
-      [fieldName]: '',
-    }))
+  function clearTransferFormFeedback() {
+    setFormFieldErrors({})
     setFormError('')
   }
 
-  function handleRecipientChange(event) {
-    updateFieldValue('recipientEmail', event.target.value)
+  function handleRecipientReset() {
     setRecipient(null)
     setRecipientLookupEmail('')
+    clearTransferFormFeedback()
   }
 
-  function handleRecipientBlur() {
-    const normalizedRecipientEmail = normalizeEmail(formValues.recipientEmail)
-
-    if (!normalizedRecipientEmail || isValidTransferEmail(normalizedRecipientEmail)) {
-      return
-    }
-
-    setFieldErrors((currentErrors) => ({
-      ...currentErrors,
-      recipientEmail: 'Ingresa un correo valido.',
-    }))
-  }
-
-  function handleAmountChange(event) {
-    updateFieldValue('amount', event.target.value)
-  }
-
-  function handleDescriptionChange(event) {
-    updateFieldValue('description', event.target.value)
-  }
-
-  function validateBaseForm() {
-    const errors = {}
-    const normalizedRecipientEmail = normalizeEmail(formValues.recipientEmail)
-
-    if (!currentUser?.uid) {
-      errors.form = 'Inicia sesion para realizar una transferencia.'
-    }
-
-    if (!normalizedRecipientEmail) {
-      errors.recipientEmail = 'Ingresa el correo del destinatario.'
-    } else if (!isValidTransferEmail(normalizedRecipientEmail)) {
-      errors.recipientEmail = 'Ingresa un correo valido.'
-    }
-
-    try {
-      parseTransferAmount(formValues.amount)
-    } catch (error) {
-      errors.amount = getTransferErrorMessage(error)
-    }
-
-    try {
-      normalizeTransferDescription(formValues.description)
-    } catch (error) {
-      errors.description = getTransferErrorMessage(error)
-    }
-
-    if (!hasUsableBalance && !profileLoading) {
-      errors.form = 'No pudimos validar tu saldo disponible.'
-    }
-
-    return errors
-  }
-
-  async function resolveRecipient() {
-    const normalizedRecipientEmail = normalizeEmail(formValues.recipientEmail)
-
+  async function resolveRecipient(normalizedRecipientEmail) {
     if (
       recipient &&
       recipientLookupEmail === normalizedRecipientEmail
@@ -180,83 +104,63 @@ function TransferPage({
     }
   }
 
-  async function handleSearchRecipient() {
+  async function handleSearchRecipient(normalizedRecipientEmail) {
     if (isSearchingRecipient) {
       return
     }
 
-    const normalizedRecipientEmail = normalizeEmail(formValues.recipientEmail)
-
-    if (!normalizedRecipientEmail || !isValidTransferEmail(normalizedRecipientEmail)) {
-      setFieldErrors((currentErrors) => ({
-        ...currentErrors,
-        recipientEmail: 'Ingresa un correo valido.',
-      }))
-      return
-    }
-
     setFormError('')
-    setFieldErrors((currentErrors) => ({
+    setFormFieldErrors((currentErrors) => ({
       ...currentErrors,
       recipientEmail: '',
     }))
 
     try {
-      await resolveRecipient()
+      await resolveRecipient(normalizedRecipientEmail)
     } catch (error) {
       setRecipient(null)
       setRecipientLookupEmail('')
-      setFieldErrors((currentErrors) => ({
+      setFormFieldErrors((currentErrors) => ({
         ...currentErrors,
         recipientEmail: getTransferErrorMessage(error),
       }))
     }
   }
 
-  async function handleTransferSubmit(event) {
-    event.preventDefault()
-
+  async function handleTransferSubmit({ monto, emailDestino, descripcion }) {
     if (isSubmitting || isSearchingRecipient) {
       return
     }
 
     setFormError('')
     setTransferResult(null)
+    setFormFieldErrors({})
 
-    const validationErrors = validateBaseForm()
-
-    if (Object.values(validationErrors).some(Boolean)) {
-      setFieldErrors(validationErrors)
-      setFormError(validationErrors.form ?? '')
+    if (!currentUser?.uid) {
+      setFormError('Inicia sesion para realizar una transferencia.')
       return
     }
 
-    const amount = parseTransferAmount(formValues.amount)
-
-    if (hasUsableBalance && amount > visibleBalance) {
-      setFieldErrors((currentErrors) => ({
-        ...currentErrors,
-        amount: 'No tienes saldo suficiente para este monto.',
-      }))
+    if (!hasUsableBalance && !profileLoading) {
+      setFormError('No pudimos validar tu saldo disponible.')
       return
     }
 
     try {
-      const foundRecipient = await resolveRecipient()
-      const description = normalizeTransferDescription(formValues.description)
+      const foundRecipient = await resolveRecipient(emailDestino)
 
-      setFieldErrors({})
+      setFormFieldErrors({})
       setConfirmation({
-        amount,
-        description,
-        estimatedBalance: visibleBalance - amount,
+        amount: monto,
+        description: descripcion,
+        estimatedBalance: visibleBalance - monto,
         recipient: foundRecipient,
         visibleBalance,
       })
     } catch (error) {
       setRecipient(null)
       setRecipientLookupEmail('')
-      setFieldErrors((currentErrors) => ({
+      setFormFieldErrors((currentErrors) => ({
         ...currentErrors,
         recipientEmail: getTransferErrorMessage(error),
       }))
@@ -290,8 +194,8 @@ function TransferPage({
 
       setConfirmation(null)
       setTransferResult(result)
-      setFormValues(initialFormState)
-      setFieldErrors({})
+      setFormResetKey((currentKey) => currentKey + 1)
+      setFormFieldErrors({})
       setRecipient(null)
       setRecipientLookupEmail('')
     } catch (error) {
@@ -305,12 +209,6 @@ function TransferPage({
     setTransferResult(null)
     setFormError('')
   }
-
-  const canSubmit =
-    !profileLoading &&
-    !isSearchingRecipient &&
-    !isSubmitting &&
-    hasUsableBalance
 
   return (
     <div className="transfer-page">
@@ -332,99 +230,21 @@ function TransferPage({
           </div>
         </div>
 
-        {formError && <ErrorState id="transfer-form-error">{formError}</ErrorState>}
-
-        <form
-          className="transfer-form"
-          onSubmit={handleTransferSubmit}
-          noValidate
-          aria-busy={isSearchingRecipient || isSubmitting}
-        >
-          <Input
-            id="transfer-recipient"
-            label="Correo del destinatario"
-            name="recipientEmail"
-            type="email"
-            value={formValues.recipientEmail}
-            onChange={handleRecipientChange}
-            onBlur={handleRecipientBlur}
-            disabled={isSubmitting}
-            autoComplete="email"
-            errorMessage={fieldErrors.recipientEmail}
-            action={
-              <button
-                type="button"
-                className="transfer-inline-button"
-                onClick={handleSearchRecipient}
-                disabled={isSubmitting || isSearchingRecipient}
-              >
-                {isSearchingRecipient ? 'Buscando...' : 'Buscar'}
-              </button>
-            }
-            required
-          />
-
-          {recipient && (
-            <div className="transfer-recipient-card" role="status">
-              <span className="transfer-recipient-card__avatar">
-                {getInitials(recipient.name)}
-              </span>
-              <div>
-                <strong>{recipient.name}</strong>
-                <span>{recipient.email}</span>
-              </div>
-            </div>
-          )}
-
-          <Input
-            id="transfer-amount"
-            label="Monto"
-            name="amount"
-            type="text"
-            inputMode="numeric"
-            value={formValues.amount}
-            onChange={handleAmountChange}
-            disabled={isSubmitting}
-            autoComplete="off"
-            errorMessage={fieldErrors.amount}
-            required
-          />
-
-          <div className="field-group">
-            <label htmlFor="transfer-description">Descripcion</label>
-            <textarea
-              id="transfer-description"
-              className="ui-input transfer-form__textarea"
-              name="description"
-              value={formValues.description}
-              onChange={handleDescriptionChange}
-              disabled={isSubmitting}
-              maxLength={DESCRIPTION_MAX_LENGTH}
-              aria-describedby={
-                fieldErrors.description
-                  ? 'transfer-description-error'
-                  : 'transfer-description-help'
-              }
-              aria-invalid={fieldErrors.description ? 'true' : undefined}
-            />
-            <p className="transfer-form__hint" id="transfer-description-help">
-              {formValues.description.length}/{DESCRIPTION_MAX_LENGTH}
-            </p>
-            {fieldErrors.description && (
-              <p className="field-error" id="transfer-description-error">
-                {fieldErrors.description}
-              </p>
-            )}
-          </div>
-
-          <Button
-            type="submit"
-            disabled={!canSubmit}
-            aria-describedby={formError ? 'transfer-form-error' : undefined}
-          >
-            {isSearchingRecipient ? 'Buscando destinatario...' : 'Continuar'}
-          </Button>
-        </form>
+        <TransferForm
+          emailUsuarioActual={currentUser?.email ?? ''}
+          externalError={formError}
+          externalFieldErrors={formFieldErrors}
+          isBalanceLoading={profileLoading}
+          isSearchingRecipient={isSearchingRecipient}
+          isSubmitting={isSubmitting}
+          onClearExternalErrors={clearTransferFormFeedback}
+          onRecipientReset={handleRecipientReset}
+          onSearchRecipient={handleSearchRecipient}
+          onTransfer={handleTransferSubmit}
+          recipient={recipient}
+          resetKey={formResetKey}
+          saldoDisponible={visibleBalance}
+        />
       </Card>
 
       {confirmation && (
