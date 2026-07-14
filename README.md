@@ -76,6 +76,64 @@ npm run preview
 npm run lint
 ```
 
+## Testing unitario
+
+El proyecto incluye pruebas unitarias para la evaluacion de Testing Unitario. La cobertura se enfoca en las zonas solicitadas por la pauta: validaciones puras, formulario de transferencia, login, historial y mocks de servicios.
+
+### Instalacion y ejecucion
+
+```bash
+npm install
+npm test
+npm run test:run
+npm run coverage
+```
+
+### Stack de testing
+
+- Vitest como runner de pruebas para Vite.
+- React Testing Library para probar componentes desde el comportamiento visible.
+- `@testing-library/user-event` para simular interacciones de usuario.
+- jsdom como entorno de navegador para los tests.
+- `@testing-library/jest-dom` para matchers de DOM.
+- `@vitest/coverage-v8` para reporte de cobertura.
+
+### Que se testeo
+
+- Validaciones puras de transferencia en `src/utils/validaciones.js`.
+- Formulario de transferencia con React Testing Library y userEvent.
+- Formulario de login con validaciones, errores y estado de carga.
+- Historial de movimientos con datos mockeados.
+- Mock explicito de `authService` con `vi.mock`.
+
+### Refactors para testabilidad
+
+- Se extrajo `TransferForm` como componente testeable sin Firebase.
+- Se ajusto `LoginForm` para recibir `onLogin` como prop.
+- Se extrajo `TransactionHistory` como componente presentacional sin Firebase.
+- Se separaron las validaciones puras en `src/utils/validaciones.js`.
+- `AuthScreen` mantiene la inyeccion del servicio real fuera del test unitario.
+
+### Aislamiento de Firebase
+
+- Firebase se aisla mediante props o `vi.mock`.
+- No se importan credenciales reales en los tests.
+- No se usa `.env` en tests unitarios.
+- No se hacen llamadas reales a Firestore ni Authentication.
+
+### Resultado actual
+
+```text
+Test Files: 6 passed
+Tests: 30 passed
+Statements: 76.82%
+Branches: 68.65%
+Functions: 77.96%
+Lines: 77.54%
+```
+
+La configuracion de coverage mide el alcance exigido por la pauta: `src/utils/`, `LoginForm`, `TransferForm` y `TransactionHistory`. La pauta no exige cobertura del 100% del proyecto completo.
+
 ## Modelo de datos
 
 ### `users/{uid}`
@@ -167,6 +225,7 @@ La evaluacion solicita dos usuarios de prueba. Usar cuentas academicas desechabl
 ## Usuarios de prueba
 
 Entregados en privado
+```
 
 ## Pruebas sugeridas
 
@@ -184,7 +243,9 @@ Entregados en privado
 
 ## Uso de inteligencia artificial
 
-Se utilizo IA como apoyo para estructurar componentes, revisar validaciones, analizar errores y preparar documentacion tecnica. Las propuestas fueron revisadas y adaptadas a la arquitectura del proyecto. Todo codigo integrado fue probado y revisado antes de incorporarlo.
+Se utilizo IA como apoyo para configurar Vitest, revisar refactors, generar borradores de tests, identificar casos borde y mejorar documentacion tecnica. Las propuestas fueron revisadas y adaptadas a la arquitectura del proyecto.
+
+Se descartaron o ajustaron tests demasiado triviales porque la pauta exige verificar comportamiento relevante y no inflar cobertura. Todo codigo integrado fue probado y revisado antes de incorporarlo.
 
 ## Estructura
 
