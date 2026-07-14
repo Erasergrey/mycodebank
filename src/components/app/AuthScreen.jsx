@@ -1,6 +1,8 @@
 import LoginForm from '../auth/LoginForm'
 import RegisterForm from '../auth/RegisterForm'
 import { AUTH_MODES } from '../../config/auth'
+import { loginUser } from '../../services/authService'
+import { getFirebaseErrorMessage } from '../../services/firebaseErrors'
 
 function AuthScreen({
   authError,
@@ -46,6 +48,8 @@ function AuthScreen({
 
         {authMode === AUTH_MODES.LOGIN ? (
           <LoginForm
+            getErrorMessage={getFirebaseErrorMessage}
+            onLogin={loginUser}
             onOperationStart={onOperationStart}
             onOperationEnd={onOperationEnd}
           />

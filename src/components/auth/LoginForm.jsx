@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import { loginUser } from '../../services/authService'
-import { getFirebaseErrorMessage } from '../../services/firebaseErrors'
 import Button from '../ui/Button'
 import ErrorState from '../ui/ErrorState'
 import Input from '../ui/Input'
@@ -11,6 +9,8 @@ const initialFormState = {
 }
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const defaultLoginErrorMessage =
+  'No fue posible iniciar sesion. Intentalo nuevamente.'
 
 function validateLoginForm(formValues) {
   const fieldErrors = {}
@@ -29,12 +29,21 @@ function validateLoginForm(formValues) {
   return fieldErrors
 }
 
-function LoginForm({ onOperationEnd, onOperationStart }) {
+function LoginForm({
+  error = '',
+  getErrorMessage = () => defaultLoginErrorMessage,
+  isSubmitting: externalSubmitting = false,
+  onLogin,
+  onOperationEnd = () => {},
+  onOperationStart = () => {},
+}) {
   const [formValues, setFormValues] = useState(initialFormState)
   const [fieldErrors, setFieldErrors] = useState({})
   const [errorMessage, setErrorMessage] = useState('')
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const isBusy = externalSubmitting || isSubmitting
+  const visibleErrorMessage = error || errorMessage
 
   function handleEmailChange(event) {
     setFormValues((currentValues) => ({
@@ -65,7 +74,7 @@ function LoginForm({ onOperationEnd, onOperationStart }) {
   async function handleLoginSubmit(event) {
     event.preventDefault()
 
-    if (isSubmitting) {
+    if (isBusy) {
       return
     }
 
@@ -83,12 +92,12 @@ function LoginForm({ onOperationEnd, onOperationStart }) {
     onOperationStart()
 
     try {
-      await loginUser({
+      await onLogin({
         email: formValues.email.trim().toLowerCase(),
         password: formValues.password,
       })
     } catch (error) {
-      setErrorMessage(getFirebaseErrorMessage(error))
+      setErrorMessage(getErrorMessage(error))
     } finally {
       setIsSubmitting(false)
       onOperationEnd()
@@ -100,7 +109,7 @@ function LoginForm({ onOperationEnd, onOperationStart }) {
       className="auth-form"
       onSubmit={handleLoginSubmit}
       noValidate
-      aria-busy={isSubmitting}
+      aria-busy={isBusy}
     >
       <Input
         id="login-email"
@@ -109,7 +118,7 @@ function LoginForm({ onOperationEnd, onOperationStart }) {
         type="email"
         value={formValues.email}
         onChange={handleEmailChange}
-        disabled={isSubmitting}
+        disabled={isBusy}
         autoComplete="email"
         errorMessage={fieldErrors.email}
         required
@@ -122,7 +131,7 @@ function LoginForm({ onOperationEnd, onOperationStart }) {
         type={isPasswordVisible ? 'text' : 'password'}
         value={formValues.password}
         onChange={handlePasswordChange}
-        disabled={isSubmitting}
+        disabled={isBusy}
         autoComplete="current-password"
         errorMessage={fieldErrors.password}
         action={
@@ -130,7 +139,7 @@ function LoginForm({ onOperationEnd, onOperationStart }) {
             type="button"
             className="password-toggle"
             onClick={handleTogglePasswordVisibility}
-            disabled={isSubmitting}
+            disabled={isBusy}
             aria-label={
               isPasswordVisible ? 'Ocultar contrasena' : 'Mostrar contrasena'
             }
@@ -141,16 +150,16 @@ function LoginForm({ onOperationEnd, onOperationStart }) {
         required
       />
 
-      {errorMessage && (
-        <ErrorState id="login-form-error">{errorMessage}</ErrorState>
+      {visibleErrorMessage && (
+        <ErrorState id="login-form-error">{visibleErrorMessage}</ErrorState>
       )}
 
       <Button
         type="submit"
-        disabled={isSubmitting}
-        aria-describedby={errorMessage ? 'login-form-error' : undefined}
+        disabled={isBusy}
+        aria-describedby={visibleErrorMessage ? 'login-form-error' : undefined}
       >
-        {isSubmitting ? 'Ingresando...' : 'Iniciar sesion'}
+        {isBusy ? 'Ingresando...' : 'Iniciar sesion'}
       </Button>
     </form>
   )

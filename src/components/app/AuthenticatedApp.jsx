@@ -66,6 +66,8 @@ function AuthenticatedApp({
       case APP_SECTIONS.TRANSACTIONS:
         return (
           <TransactionsPage
+            currentUserEmail={currentUser?.email ?? ''}
+            currentUserId={currentUser?.uid ?? ''}
             onRetryTransactions={retryTransactions}
             onTransfer={() => onNavigate(APP_SECTIONS.TRANSFER)}
             transactions={transactions}
